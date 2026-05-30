@@ -41,6 +41,10 @@ tasks {
         useJUnitPlatform()
     }
 
+    shadowJar {
+        archiveClassifier.set("")
+    }
+
     runServer {
         minecraftVersion("1.21.4")
         jvmArgs("-Xms2G", "-Xmx2G", "-Dcom.mojang.eula.agree=true")
