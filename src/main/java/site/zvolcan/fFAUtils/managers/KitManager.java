@@ -24,10 +24,7 @@ public class KitManager {
 
     /** Saves a kit to memory and persists to kits.yml */
     public boolean saveKit(@NotNull String name, @NotNull Kit kit) {
-        if (name == null || name.isEmpty()) {
-            return false;
-        }
-        if (kit == null) {
+        if (name.isEmpty()) {
             return false;
         }
 
@@ -48,7 +45,7 @@ public class KitManager {
 
     /** Deletes a kit and persists the change */
     public boolean deleteKit(@NotNull String name) {
-        if (name == null || name.isEmpty()) {
+        if (name.isEmpty()) {
             return false;
         }
 

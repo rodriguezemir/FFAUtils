@@ -40,9 +40,10 @@ public class FFAUtils extends JavaPlugin {
         
         deathEventManager = new DeathEventManager(this);
         saveResource("death-events.yml", false);
-        deathEventManager.registerDeathEvents();
+        deathEventManager.registerDeathMessages();
         getServer().getPluginManager().registerEvents(
-            new PlayerDeathListener(deathEventManager), this);
+            new PlayerDeathListener(deathEventManager, combatLogManager), this
+        );
     }
 
     @Override
