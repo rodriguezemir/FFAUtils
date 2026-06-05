@@ -4,7 +4,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import site.zvolcan.fFAUtils.FFAUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,11 +12,11 @@ import java.util.UUID;
 
 public class CombatLogManager {
 
-    private final JavaPlugin plugin;
+    private final FFAUtils plugin;
     private final long combatTimeoutTicks;
     private final Map<UUID, Long> combatEndTimes = new HashMap<>();
 
-    public CombatLogManager(@NotNull JavaPlugin plugin, long combatTimeoutTicks) {
+    public CombatLogManager(@NotNull FFAUtils plugin, long combatTimeoutTicks) {
         this.plugin = plugin;
         this.combatTimeoutTicks = combatTimeoutTicks;
     }
@@ -40,10 +40,15 @@ public class CombatLogManager {
     }
 
     /** Removes player from combat tracking */
-    public void removeFromCombat(@Nullable Player player) {
-         if (player != null) {
-             combatEndTimes.remove(player.getUniqueId());
-         }
+    public void removeFromCombat(@NotNull UUID uuid) {
+        combatEndTimes.remove(uuid);
+        Player player = plugin.getServer().getPlayer(uuid);
+        if (player != null && player.isOnline()) {
+            plugin.getUtils().message(
+                    player,
+                    "<green>Your are no longer in combat."
+            );
+        }
     }
 
     /** Starts the cleanup task to remove expired combat tags */
@@ -52,7 +57,11 @@ public class CombatLogManager {
             @Override
             public void run() {
                 long currentTime = System.currentTimeMillis();
-                combatEndTimes.entrySet().removeIf(entry -> entry.getValue() < currentTime);
+                for (Map.Entry<UUID, Long> entry : combatEndTimes.entrySet()) {
+                    if (currentTime > entry.getValue()) {
+                        removeFromCombat(entry.getKey());
+                    }
+                }
             }
         }.runTaskTimer(plugin, combatTimeoutTicks, combatTimeoutTicks);
     }
