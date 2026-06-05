@@ -2,14 +2,11 @@ package site.zvolcan.fFAUtils.managers;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import site.zvolcan.fFAUtils.FFAUtils;
-import site.zvolcan.fFAUtils.objects.DeathEvent;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
@@ -41,12 +38,12 @@ public class DeathEventManager {
     }
 
     /**
-     * Loads all death events from death-events.yml
+     * Loads all death events from death-messages.yml
      */
     public void loadAllDeathEvents() {
         messages.clear();
 
-        File eventsFile = new File(plugin.getDataFolder(), "death-events.yml");
+        File eventsFile = new File(plugin.getDataFolder(), "death-messages.yml");
         if (!eventsFile.exists()) {
             return;
         }
@@ -57,7 +54,7 @@ public class DeathEventManager {
                 this.messages = new ArrayList<>(config.getStringList("messages"));
             }
         } catch (Exception e) {
-            plugin.getLogger().log(Level.WARNING, "Failed to load death-events.yml", e);
+            plugin.getLogger().log(Level.WARNING, "Failed to load death-messages.yml", e);
         }
     }
 

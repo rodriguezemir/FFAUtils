@@ -10,7 +10,6 @@ import site.zvolcan.fFAUtils.objects.EffectType;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,7 +30,7 @@ class DeathEventManagerTest {
 
     @Test
     void saveDeathEvent_shouldCreateValidYamlFormat() throws IOException {
-        File eventsFile = new File(tempDir, "death-events.yml");
+        File eventsFile = new File(tempDir, "death-messages.yml");
         YamlConfiguration config = new YamlConfiguration();
         config.set("events.lightning.message", "<yellow>{player} was struck by lightning!");
         config.set("events.lightning.broadcast", true);
@@ -43,7 +42,7 @@ class DeathEventManagerTest {
 
     @Test
     void saveDeathEvent_shouldPersistAllFields() throws IOException {
-        File eventsFile = new File(tempDir, "death-events.yml");
+        File eventsFile = new File(tempDir, "death-messages.yml");
         YamlConfiguration config = new YamlConfiguration();
         config.set("events.test.message", "<red>Test message");
         config.set("events.test.broadcast", false);
@@ -58,7 +57,7 @@ class DeathEventManagerTest {
 
     @Test
     void saveDeathEvent_shouldOverwriteExistingEvent() throws IOException {
-        File eventsFile = new File(tempDir, "death-events.yml");
+        File eventsFile = new File(tempDir, "death-messages.yml");
         YamlConfiguration config = new YamlConfiguration();
         config.set("events.event1.message", "original message");
         config.save(eventsFile);
@@ -72,7 +71,7 @@ class DeathEventManagerTest {
 
     @Test
     void loadDeathEvent_shouldReadMultipleEvents() throws IOException {
-        File eventsFile = new File(tempDir, "death-events.yml");
+        File eventsFile = new File(tempDir, "death-messages.yml");
         java.nio.file.Files.writeString(eventsFile.toPath(), """
             events:
               lightning:
@@ -93,7 +92,7 @@ class DeathEventManagerTest {
 
     @Test
     void loadAllDeathEvents_shouldHandleEmptyFile() throws IOException {
-        File eventsFile = new File(tempDir, "death-events.yml");
+        File eventsFile = new File(tempDir, "death-messages.yml");
         java.nio.file.Files.writeString(eventsFile.toPath(), "events: {}");
 
         YamlConfiguration config = YamlConfiguration.loadConfiguration(eventsFile);
@@ -108,7 +107,7 @@ class DeathEventManagerTest {
 
     @Test
     void deleteDeathEvent_shouldRemoveFromFile() throws IOException {
-        File eventsFile = new File(tempDir, "death-events.yml");
+        File eventsFile = new File(tempDir, "death-messages.yml");
         YamlConfiguration config = new YamlConfiguration();
         config.set("events.event1.message", "message");
         config.set("events.event1.broadcast", true);
@@ -176,8 +175,8 @@ class DeathEventManagerTest {
 
     @Test
     void deathEventsFile_shouldUseCorrectPath() {
-        File eventsFile = new File(tempDir, "death-events.yml");
-        assertEquals("death-events.yml", eventsFile.getName());
+        File eventsFile = new File(tempDir, "death-messages.yml");
+        assertEquals("death-messages.yml", eventsFile.getName());
     }
 
     @Test
@@ -191,7 +190,7 @@ class DeathEventManagerTest {
 
     @Test
     void loadAllDeathEvents_shouldSkipEventWithMissingMessage() throws IOException {
-        File eventsFile = new File(tempDir, "death-events.yml");
+        File eventsFile = new File(tempDir, "death-messages.yml");
         java.nio.file.Files.writeString(eventsFile.toPath(), """
             events:
               invalid:
@@ -206,7 +205,7 @@ class DeathEventManagerTest {
 
     @Test
     void yamlStructure_shouldUseCorrectFormat() throws IOException {
-        File eventsFile = new File(tempDir, "death-events.yml");
+        File eventsFile = new File(tempDir, "death-messages.yml");
         YamlConfiguration config = new YamlConfiguration();
         config.set("events.myevent.message", "message");
         config.set("events.myevent.broadcast", true);
