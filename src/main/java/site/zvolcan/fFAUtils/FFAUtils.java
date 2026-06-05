@@ -23,6 +23,10 @@ public class FFAUtils extends JavaPlugin {
     private PlayersManager playersManager;
     @Getter
     private DeathEventManager deathEventManager;
+    @Getter
+    private CommandManager commandManager;
+    @Getter
+    private StatsManager statsManager;
 
     @Override
     public void onEnable() {
@@ -35,18 +39,23 @@ public class FFAUtils extends JavaPlugin {
         combatLogManager = new CombatLogManager(this, getConfig().getLong("combatlog.timeout-ticks", 300L));
         combatLogManager.startCleanupTask();
         lobbyManager = new LobbyManager(this);
+        commandManager = new CommandManager(this, kitManager, spawnManager);
+        playersManager = new PlayersManager();
+        statsManager = new StatsManager(this);
+        statsManager.init();
         getServer().getPluginManager().registerEvents(new PlayerConnectListener(this, lobbyManager, playersManager), this);
         getServer().getPluginManager().registerEvents(lobbyManager, this);
         
         deathEventManager = new DeathEventManager(this);
-        saveResource("death-events.yml", false);
+        saveResource("death-messages.yml", false);
         deathEventManager.registerDeathMessages();
         getServer().getPluginManager().registerEvents(
-            new PlayerDeathListener(deathEventManager, combatLogManager), this
+            new PlayerDeathListener(deathEventManager, spawnManager, combatLogManager, statsManager), this
         );
     }
 
     @Override
     public void onDisable() {
+        statsManager.close();
     }
 }

@@ -23,7 +23,7 @@ public class SpawnManager {
     }
 
     /** Saves a spawn location to memory and persists to spawns.yml */
-    public boolean saveSpawn(String name, Location location) {
+    public boolean saveSpawn(@NotNull String name, Location location) {
         if (name == null || name.isEmpty()) {
             return false;
         }
@@ -132,5 +132,14 @@ public class SpawnManager {
         } catch (IOException e) {
             plugin.getLogger().log(Level.WARNING, "Failed to save spawns.yml", e);
         }
+    }
+
+    @NotNull
+    public Location getLobbySpawn() {
+        Location lobbySpawn = getSpawn("lobby");
+        if (lobbySpawn == null) {
+            lobbySpawn = plugin.getServer().getWorlds().getFirst().getSpawnLocation();
+        }
+        return lobbySpawn;
     }
 }
