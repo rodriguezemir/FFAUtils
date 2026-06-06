@@ -1,5 +1,7 @@
 package site.zvolcan.fFAUtils.managers;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import site.zvolcan.fFAUtils.FFAUtils;
 import site.zvolcan.fFAUtils.objects.FFAPlayer;
 
@@ -15,7 +17,7 @@ public final class StatsManager {
 
     private final FFAUtils plugin;
     private final Map<UUID, FFAPlayer> players = new ConcurrentHashMap<>();
-    private Connection connection;
+    private HikariDataSource dataSource;
 
     public StatsManager(FFAUtils plugin) {
         this.plugin = plugin;
@@ -28,20 +30,26 @@ public final class StatsManager {
 
     private void connect() {
         try {
-            Class.forName("org.sqlite.JDBC");
             File dataFolder = plugin.getDataFolder();
             if (!dataFolder.exists()) {
                 dataFolder.mkdirs();
             }
             File dbFile = new File(dataFolder, "stats.db");
-            connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath());
+
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl("jdbc:sqlite:" + dbFile.getAbsolutePath());
+            config.setMaximumPoolSize(10);
+            config.setConnectionTimeout(5000);
+            config.setPoolName("FFAUtils-SQLite");
+            dataSource = new HikariDataSource(config);
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to connect to SQLite database", e);
+            plugin.getLogger().log(Level.SEVERE, "Failed to connect to SQLite database via HikariCP", e);
         }
     }
 
     private void createTable() {
-        try (Statement statement = connection.createStatement()) {
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement()) {
             statement.execute(
                 "CREATE TABLE IF NOT EXISTS player_stats (" +
                 "uuid VARCHAR(36) PRIMARY KEY, " +
@@ -56,8 +64,9 @@ public final class StatsManager {
 
     public FFAPlayer loadPlayer(UUID uuid) {
         FFAPlayer ffaPlayer = new FFAPlayer(uuid);
-        try (PreparedStatement statement = connection.prepareStatement(
-            "SELECT kills, deaths FROM player_stats WHERE uuid = ?"
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                "SELECT kills, deaths FROM player_stats WHERE uuid = ?"
         )) {
             statement.setString(1, uuid.toString());
             ResultSet result = statement.executeQuery();
@@ -77,9 +86,10 @@ public final class StatsManager {
         if (ffaPlayer == null) {
             return;
         }
-        try (PreparedStatement statement = connection.prepareStatement(
-            "INSERT INTO player_stats (uuid, kills, deaths) VALUES (?, ?, ?) " +
-            "ON CONFLICT(uuid) DO UPDATE SET kills = ?, deaths = ?"
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                "INSERT INTO player_stats (uuid, kills, deaths) VALUES (?, ?, ?) " +
+                "ON CONFLICT(uuid) DO UPDATE SET kills = ?, deaths = ?"
         )) {
             statement.setString(1, uuid.toString());
             statement.setInt(2, ffaPlayer.getKills());
@@ -142,12 +152,8 @@ public final class StatsManager {
 
     public void close() {
         saveAllPlayers();
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                plugin.getLogger().log(Level.WARNING, "Failed to close database connection", e);
-            }
+        if (dataSource != null) {
+            dataSource.close();
         }
     }
 }

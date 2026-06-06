@@ -20,6 +20,8 @@ dependencies {
 
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
     implementation("com.github.putindeer:mcdev-utils:1.0.28")
+    implementation("com.google.code.gson:gson:2.14.0")
+    implementation("com.zaxxer:HikariCP:7.0.2")
 
     testImplementation("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
@@ -43,6 +45,9 @@ tasks {
 
     shadowJar {
         archiveClassifier.set("")
+        relocate("com.github.putindeer", "site.zvolcan.fFFAUtils.libs.utils")
+        relocate("com.google.gson", "site.zvolcan.fFFAUtils.libs.gson")
+        relocate("com.zaxxer.hikari", "site.zvolcan.fFFAUtils.libs.hikari")
     }
 
     runServer {
