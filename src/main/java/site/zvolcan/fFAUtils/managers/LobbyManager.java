@@ -19,10 +19,11 @@ import java.util.logging.Level;
 public final class LobbyManager implements Listener {
 
     private final FFAUtils plugin;
-    private final Map<Material, String> commands = new HashMap<>();
+    private final Map<ItemStack, String> items = new HashMap<>();
 
     public LobbyManager(@NotNull FFAUtils plugin) {
         this.plugin = plugin;
+        loadItemsSection();
     }
 
     /**
@@ -37,14 +38,14 @@ public final class LobbyManager implements Listener {
         player.getInventory().setLeggings(null);
         player.getInventory().setBoots(null);
 
-        File itemsFile = findItemsFile();
-        if (itemsFile == null) {
-            return;
+        loadPlayerItems(player);
+    }
+
+    public void loadPlayerItems(@NotNull Player player) {
+        for (ItemStack item : items.keySet()) {
+            if (item == null) continue;
+            player.getInventory().addItem(item);
         }
-
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(itemsFile);
-
-        loadItemsSection(player, config);
     }
 
     private File findItemsFile() {
@@ -66,7 +67,14 @@ public final class LobbyManager implements Listener {
         return null;
     }
 
-    private void loadItemsSection(Player player, YamlConfiguration config) {
+    private void loadItemsSection() {
+        File itemsFile = findItemsFile();
+        if (itemsFile == null) {
+            plugin.getLogger().log(Level.WARNING, "spawn-lobby-items.yml not found in data folder or resources");
+            return;
+        }
+
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(itemsFile);
         if (!config.contains("items")) return;
 
         for (String key : Objects.requireNonNull(config.getConfigurationSection("items")).getKeys(false)) {
@@ -78,11 +86,7 @@ public final class LobbyManager implements Listener {
                         name(config.getString("items" + "." + key + ".name")).build();
 
                 if (config.isString("items" + "." + key + ".command")) {
-                    commands.put(mat, "items" + "." + key + ".command");
-                }
-
-                if (item != null) {
-                    player.getInventory().setItem(slot, item);
+                    items.put(item, "items" + "." + key + ".command");
                 }
             } catch (NumberFormatException e) {
                 plugin.getLogger().log(Level.WARNING, "Invalid slot key: " + key);
@@ -95,8 +99,8 @@ public final class LobbyManager implements Listener {
         final ItemStack item = event.getItem();
         if (item == null) return;
 
-        if (commands.containsKey(item.getType())) {
-            event.getPlayer().performCommand("/" + commands.get(item.getType()));
+        if (items.containsKey(item.getType())) {
+            event.getPlayer().performCommand("/" + items.get(item.getType()));
         }
     }
 }
