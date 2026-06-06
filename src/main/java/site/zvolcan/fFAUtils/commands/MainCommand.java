@@ -6,15 +6,21 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import me.putindeer.api.util.PluginUtils;
 import org.bukkit.command.CommandSender;
+import site.zvolcan.fFAUtils.FFAPlaceholders;
 import site.zvolcan.fFAUtils.commands.abs.CommandExecutor;
+import site.zvolcan.fFAUtils.managers.MessagesManager;
 import site.zvolcan.fFAUtils.objects.Sounds;
 
 public final class MainCommand implements CommandExecutor {
 
     private final PluginUtils utils;
+    private final FFAPlaceholders ffaPlaceholders;
+    private final MessagesManager messagesManager;
 
-    public MainCommand(PluginUtils utils) {
+    public MainCommand(PluginUtils utils, FFAPlaceholders ffaPlaceholders, MessagesManager messagesManager) {
         this.utils = utils;
+        this.ffaPlaceholders = ffaPlaceholders;
+        this.messagesManager = messagesManager;
     }
 
     @Override
@@ -26,6 +32,8 @@ public final class MainCommand implements CommandExecutor {
             CommandSender sender = source.getSender();
 
             // TODO - agregar reinicios
+            ffaPlaceholders.register();
+            messagesManager.registerMessages();
 
             utils.message(
                     sender,
