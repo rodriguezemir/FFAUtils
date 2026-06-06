@@ -41,14 +41,14 @@ public class CombatLogManager {
 
     /** Removes player from combat tracking */
     public void removeFromCombat(@NotNull UUID uuid) {
-        combatEndTimes.remove(uuid);
         Player player = plugin.getServer().getPlayer(uuid);
-        if (player != null && player.isOnline()) {
+        if (player != null && player.isOnline() && combatEndTimes.containsKey(uuid)) {
             plugin.getUtils().message(
                     player,
                     "<green>Your are no longer in combat."
             );
         }
+        combatEndTimes.remove(uuid);
     }
 
     /** Starts the cleanup task to remove expired combat tags */
