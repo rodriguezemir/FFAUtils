@@ -1,16 +1,29 @@
 package site.zvolcan.fFAUtils.managers;
 
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for SpawnManager YAML file format and business logic.
@@ -190,6 +203,264 @@ class SpawnManagerTest {
 
         YamlConfiguration config = YamlConfiguration.loadConfiguration(spawnsFile);
         assertEquals(0, config.getConfigurationSection("spawns").getKeys(false).size());
+    }
+
+    // --- JSON round-trip tests (Tasks 1.3, 1.4, 4.2) ---
+
+    @Test
+    void persistSpawns_omitsAllowedKitsWhenNull() throws IOException {
+        // Simulate persistSpawns format: SpawnData with null allowedKits
+        File spawnFile = new File(tempDir, "test_spawn.json");
+        Map<String, Object> jsonData = new LinkedHashMap<>();
+        jsonData.put("world", "world");
+        jsonData.put("x", 100.0);
+        jsonData.put("y", 64.0);
+        jsonData.put("z", 200.0);
+        jsonData.put("yaw", 90.0);
+        jsonData.put("pitch", 45.0);
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(jsonData);
+        java.nio.file.Files.writeString(spawnFile.toPath(), json);
+
+        String loaded = java.nio.file.Files.readString(spawnFile.toPath());
+        assertFalse(loaded.contains("allowed-kits"), "allowed-kits should be omitted when null");
+    }
+
+    @Test
+    void persistSpawns_includesAllowedKitsWhenNonNullAndNonEmpty() throws IOException {
+        File spawnFile = new File(tempDir, "test_spawn.json");
+        Map<String, Object> jsonData = new LinkedHashMap<>();
+        jsonData.put("world", "world");
+        jsonData.put("x", 100.0);
+        jsonData.put("y", 64.0);
+        jsonData.put("z", 200.0);
+        jsonData.put("yaw", 90.0);
+        jsonData.put("pitch", 45.0);
+        jsonData.put("allowed-kits", Arrays.asList("archer", "warrior"));
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(jsonData);
+        java.nio.file.Files.writeString(spawnFile.toPath(), json);
+
+        String content = java.nio.file.Files.readString(spawnFile.toPath());
+        assertTrue(content.contains("allowed-kits"));
+    }
+
+    @Test
+    void loadAllSpawns_handlesMissingAllowedKitsField() throws IOException {
+        File spawnFile = new File(tempDir, "legacy_spawn.json");
+        java.nio.file.Files.writeString(spawnFile.toPath(), """
+            {
+              "world": "world",
+              "x": 100.0,
+              "y": 64.0,
+              "z": 200.0,
+              "yaw": 0.0,
+              "pitch": 0.0
+            }
+            """);
+
+        String json = java.nio.file.Files.readString(spawnFile.toPath());
+        Gson gson = new GsonBuilder().create();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> data = gson.fromJson(json, Map.class);
+
+        List<String> allowedKits = null;
+        if (data.containsKey("allowed-kits")) {
+            Object raw = data.get("allowed-kits");
+            if (raw instanceof List) {
+                allowedKits = new ArrayList<>();
+                for (Object item : (List<?>) raw) {
+                    allowedKits.add(String.valueOf(item));
+                }
+            }
+        }
+        assertNull(allowedKits, "Missing allowed-kits field should result in null");
+    }
+
+    @Test
+    void loadAllSpawns_readsAllowedKitsField() throws IOException {
+        File spawnFile = new File(tempDir, "spawn_with_kits.json");
+        java.nio.file.Files.writeString(spawnFile.toPath(), """
+            {
+              "world": "world",
+              "x": 100.0,
+              "y": 64.0,
+              "z": 200.0,
+              "yaw": 0.0,
+              "pitch": 0.0,
+              "allowed-kits": ["archer", "warrior"]
+            }
+            """);
+
+        String json = java.nio.file.Files.readString(spawnFile.toPath());
+        Gson gson = new GsonBuilder().create();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> data = gson.fromJson(json, Map.class);
+
+        assertTrue(data.containsKey("allowed-kits"));
+        List<?> raw = (List<?>) data.get("allowed-kits");
+        List<String> allowedKits = new ArrayList<>();
+        for (Object item : raw) {
+            allowedKits.add(String.valueOf(item));
+        }
+        assertEquals(Arrays.asList("archer", "warrior"), allowedKits);
+    }
+
+    @Test
+    void loadAllSpawns_handlesGsonIntegerCoercion() throws IOException {
+        File spawnFile = new File(tempDir, "spawn_coercion.json");
+        java.nio.file.Files.writeString(spawnFile.toPath(), """
+            {
+              "world": "world",
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "yaw": 0.0,
+              "pitch": 0.0,
+              "allowed-kits": ["archer", 123, "warrior"]
+            }
+            """);
+
+        String json = java.nio.file.Files.readString(spawnFile.toPath());
+        Gson gson = new GsonBuilder().create();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> data = gson.fromJson(json, Map.class);
+
+        List<?> raw = (List<?>) data.get("allowed-kits");
+        List<String> allowedKits = new ArrayList<>();
+        for (Object item : raw) {
+            allowedKits.add(String.valueOf(item));
+        }
+        assertEquals(3, allowedKits.size());
+        assertEquals("archer", allowedKits.get(0));
+        // Gson deserializes 123 as Double(123.0), so String.valueOf() gives "123.0"
+        assertEquals("123.0", allowedKits.get(1), "Numeric value should be coerced via String.valueOf()");
+        assertEquals("warrior", allowedKits.get(2));
+    }
+
+    // --- SpawnManager API tests (Tasks 1.5, 4.3) ---
+
+    @Test
+    void getAllowedKits_returnsNullForSpawnWithoutRestrictions() {
+        World world = mock(World.class);
+        Location loc = new Location(world, 10.0, 64.0, 200.0);
+        SpawnManager.SpawnData data = new SpawnManager.SpawnData(loc, null);
+        assertNull(data.getAllowedKits());
+    }
+
+    @Test
+    void getAllowedKits_returnsListForSpawnWithRestrictions() {
+        World world = mock(World.class);
+        Location loc = new Location(world, 10.0, 64.0, 200.0);
+        SpawnManager.SpawnData data = new SpawnManager.SpawnData(loc, Arrays.asList("archer", "warrior"));
+        assertNotNull(data.getAllowedKits());
+        assertEquals(2, data.getAllowedKits().size());
+    }
+
+    @Test
+    void spawnData_allowedKitsAreLowercased() {
+        World world = mock(World.class);
+        Location loc = new Location(world, 0, 0, 0);
+        SpawnManager.SpawnData data = new SpawnManager.SpawnData(loc, Arrays.asList("ARCHER", "WARRIOR"));
+        assertEquals("archer", data.getAllowedKits().get(0));
+        assertEquals("warrior", data.getAllowedKits().get(1));
+    }
+
+    @Test
+    void spawnData_unmodifiableListProtectsFromMutation() {
+        World world = mock(World.class);
+        Location loc = new Location(world, 0, 0, 0);
+        SpawnManager.SpawnData data = new SpawnManager.SpawnData(loc, Arrays.asList("archer"));
+        assertThrows(UnsupportedOperationException.class, () -> data.getAllowedKits().add("mage"));
+    }
+
+    // --- Integration tests for addAllowedKit/removeAllowedKit (Tasks 1.5, 4.3) ---
+
+    @Test
+    void spawnExists_returnsFalseForNonExistent() {
+        World world = mock(World.class);
+        Location loc = new Location(world, 10.0, 64.0, 200.0);
+        // SpawnData getLocation is the adapter that getAllSpawns uses
+        SpawnManager.SpawnData data = new SpawnManager.SpawnData(loc, null);
+        assertEquals(loc, data.getLocation());
+    }
+
+    @Test
+    void spawnData_withNonEmptyAllowedKits_storesLowercased() {
+        World world = mock(World.class);
+        Location loc = new Location(world, 0, 0, 0);
+        SpawnManager.SpawnData data = new SpawnManager.SpawnData(loc, Arrays.asList("Archer", "WARRIOR", "maGe"));
+        List<String> kits = data.getAllowedKits();
+        assertEquals("archer", kits.get(0));
+        assertEquals("warrior", kits.get(1));
+        assertEquals("mage", kits.get(2));
+    }
+
+    @Test
+    void getAllSpawnsData_returnsAllSpawnData() {
+        World world = mock(World.class);
+        Location loc1 = new Location(world, 10.0, 64.0, 200.0);
+        Location loc2 = new Location(world, 50.0, 70.0, 100.0);
+        SpawnManager.SpawnData data1 = new SpawnManager.SpawnData(loc1, null);
+        SpawnManager.SpawnData data2 = new SpawnManager.SpawnData(loc2, Arrays.asList("archer"));
+        // Verify data separation
+        assertEquals(loc1, data1.getLocation());
+        assertEquals(loc2, data2.getLocation());
+        assertNull(data1.getAllowedKits());
+        assertNotNull(data2.getAllowedKits());
+        assertEquals(1, data2.getAllowedKits().size());
+    }
+
+    // --- SpawnData tests (Task 4.1) ---
+
+    @Test
+    void spawnData_withNullAllowedKits_returnsNull() {
+        World world = mock(World.class);
+        Location loc = new Location(world, 10.5, 64.0, 200.5, 90.0f, 45.0f);
+        SpawnManager.SpawnData data = new SpawnManager.SpawnData(loc, null);
+        assertNull(data.getAllowedKits());
+        assertEquals(loc, data.getLocation());
+    }
+
+    @Test
+    void spawnData_withEmptyAllowedKits_returnsEmptyList() {
+        World world = mock(World.class);
+        Location loc = new Location(world, 100.0, 50.0, 300.0);
+        SpawnManager.SpawnData data = new SpawnManager.SpawnData(loc, Collections.emptyList());
+        assertNotNull(data.getAllowedKits());
+        assertTrue(data.getAllowedKits().isEmpty());
+        assertEquals(loc, data.getLocation());
+    }
+
+    @Test
+    void spawnData_normalizesKitNamesToLowercase() {
+        World world = mock(World.class);
+        Location loc = new Location(world, 0, 0, 0);
+        SpawnManager.SpawnData data = new SpawnManager.SpawnData(loc, Arrays.asList("ARCHER", "Warrior", "mAgE"));
+        List<String> kits = data.getAllowedKits();
+        assertNotNull(kits);
+        assertEquals(3, kits.size());
+        assertEquals("archer", kits.get(0));
+        assertEquals("warrior", kits.get(1));
+        assertEquals("mage", kits.get(2));
+    }
+
+    @Test
+    void spawnData_allowedKitsListIsUnmodifiable() {
+        World world = mock(World.class);
+        Location loc = new Location(world, 0, 0, 0);
+        SpawnManager.SpawnData data = new SpawnManager.SpawnData(loc, Arrays.asList("archer", "warrior"));
+        assertThrows(UnsupportedOperationException.class, () -> data.getAllowedKits().add("mage"));
+    }
+
+    @Test
+    void spawnData_getLocationReturnsPassedLocation() {
+        World world = mock(World.class);
+        Location loc = new Location(world, 10.5, 64.0, 200.5);
+        SpawnManager.SpawnData data = new SpawnManager.SpawnData(loc, null);
+        assertSame(loc, data.getLocation());
     }
 
     @Test
