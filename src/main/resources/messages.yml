@@ -3,3 +3,10 @@ only-players-execute: "Only players can execute this command."
 save-spawn: "<green>Spawn {spawn} has been set."
 no-kits-available: "<red>No kits available."
 kit-not-found: "<red>Kit {name} not found."
+
+# Kit list per spawn messages
+kit-not-allowed-for-spawn: "<red>El kit seleccionado no se encuentra permitido para este spawn."
+kit-added-to-spawn: "<green>Kit {kit} added to spawn {spawn}."
+kit-removed-from-spawn: "<green>Kit {kit} removed from spawn {spawn}."
+spawn-not-found: "<red>Spawn {spawn} not found."
+spawn-deleted: "<green>Spawn {spawn} deleted."
