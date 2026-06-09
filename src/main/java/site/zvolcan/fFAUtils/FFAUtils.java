@@ -2,6 +2,10 @@ package site.zvolcan.fFAUtils;
 
 import lombok.Getter;
 import me.putindeer.api.util.PluginUtils;
+
+import java.io.File;
+
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import site.zvolcan.fFAUtils.listeners.PlayerConnectListener;
 import site.zvolcan.fFAUtils.listeners.PlayerDeathListener;
@@ -40,7 +44,7 @@ public class FFAUtils extends JavaPlugin {
         instance = this;
 
         saveDefaultConfig();
-        utils = new PluginUtils(this, getConfig().getString("messages-prefix", "<red><b>FFA <reset>"));
+        utils = new PluginUtils(this, YamlConfiguration.loadConfiguration(new File(getDataFolder(), "messages.yml")).getString("messages-prefix", "<b><gradient:#5472F4:#27A2C1>FFAUTILS</gradient></b> <dark_gray>▶️</dark_gray> "));
         spawnManager = new SpawnManager(this);
         spawnManager.registerSpawns();
         kitManager = new KitManager(this);
@@ -63,7 +67,7 @@ public class FFAUtils extends JavaPlugin {
         saveResource("death-messages.yml", false);
         deathEventManager.registerDeathMessages();
         getServer().getPluginManager().registerEvents(
-            new PlayerDeathListener(deathEventManager, spawnManager, combatLogManager, statsManager), this
+            new PlayerDeathListener(deathEventManager, spawnManager, combatLogManager, statsManager, playersManager), this
         );
     }
 

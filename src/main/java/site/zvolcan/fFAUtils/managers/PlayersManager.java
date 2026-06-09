@@ -3,6 +3,7 @@ package site.zvolcan.fFAUtils.managers;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import site.zvolcan.fFAUtils.objects.FFAPlayer;
+import site.zvolcan.fFAUtils.objects.PlayerState;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,8 +28,11 @@ public final class PlayersManager {
     }
 
     public void removePlayer(@NotNull final Player player) {
-        final FFAPlayer ffaPlayer = new FFAPlayer(player.getUniqueId());
-        players.putIfAbsent(player.getUniqueId(), ffaPlayer);
+        players.remove(player.getUniqueId());
+    }
+
+    public boolean isPlayerInFFA(@NotNull final Player player) {
+        return getFFAPlayer(player).getState() == PlayerState.IN_FFA;
     }
 
 }
