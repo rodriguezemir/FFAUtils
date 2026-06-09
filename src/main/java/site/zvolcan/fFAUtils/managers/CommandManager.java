@@ -35,7 +35,7 @@ public final class CommandManager {
         list.add(new LoadMeCommand(plugin, kitManager, spawnManager, playersManager));
         list.add(new SpawnCommand(spawnManager, lobbyManager));
         list.add(new DeadCommand());
-        list.add(new MainCommand(plugin.getUtils(), ffaPlaceholders, plugin.getMessagesManager()));
+        list.add(new MainCommand(plugin.getUtils(), ffaPlaceholders, plugin.getMessagesManager(), kitManager, spawnManager));
         list.add(new SetSpawnCommand(spawnManager, plugin.getUtils()));
 
         plugin.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, (cmd) -> {

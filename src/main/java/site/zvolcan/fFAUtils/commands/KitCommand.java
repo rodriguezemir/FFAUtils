@@ -31,6 +31,7 @@ public final class KitCommand implements CommandExecutor {
     public LiteralCommandNode<CommandSourceStack> execute() {
         LiteralArgumentBuilder<CommandSourceStack> literal = Commands.literal("kit");
 
+        literal.requires(ctx -> ctx.getSender().hasPermission("ffautils.commands.kit")); // Permission: ffautils.commands.kit
         literal.then(Commands.argument("name", StringArgumentType.word()).executes(ctx -> {
             CommandSourceStack source = ctx.getSource();
             CommandSender sender = source.getSender();

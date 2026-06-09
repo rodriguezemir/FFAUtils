@@ -32,6 +32,8 @@ public final class SpawnCommand implements CommandExecutor {
 
                     return 1;
                 });
+
+        literal.requires(ctx -> ctx.getSender().hasPermission("ffautils.commands.spawn"));
         return literal.build();
     }
 }

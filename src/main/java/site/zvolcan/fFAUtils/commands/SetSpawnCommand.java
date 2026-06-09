@@ -26,6 +26,7 @@ public final class SetSpawnCommand implements CommandExecutor {
     @Override
     public LiteralCommandNode<CommandSourceStack> execute() {
         LiteralArgumentBuilder<CommandSourceStack> literal = Commands.literal("setspawn");
+        literal.requires(ctx -> ctx.getSender().hasPermission("ffautils.commands.setspawn"));
         literal.then(Commands.argument("name", StringArgumentType.string()).executes((ctx) -> {
             CommandSourceStack source = ctx.getSource();
             CommandSender sender = source.getSender();
