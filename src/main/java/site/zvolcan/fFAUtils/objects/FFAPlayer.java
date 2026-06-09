@@ -27,6 +27,9 @@ public final class FFAPlayer {
     private int deaths = 0;
     @Getter
     @Setter
+    private int killstreak = 0;
+    @Getter
+    @Setter
     private PlayerState state = PlayerState.LOBBY;
     public FFAPlayer(UUID uuid) {
         this.uuid = uuid;
