@@ -1,6 +1,7 @@
 package site.zvolcan.fFAUtils.inventory;
 
 import fr.mrmicky.fastinv.FastInv;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Location;
@@ -41,17 +42,17 @@ public class SpawnDetailInventory extends FastInv {
             ItemStack infoItem = new ItemStack(Material.PAPER);
             ItemMeta infoMeta = infoItem.getItemMeta();
             infoMeta.displayName(MiniMessage.miniMessage().deserialize("<gray>Spawn Info</gray>").decoration(TextDecoration.ITALIC, false));
-            List<String> lore = new ArrayList<>();
-            lore.add("World: " + (world != null ? world.getName() : "Unknown"));
-            lore.add(String.format("X: %.1f Y: %.1f Z: %.1f", loc.getX(), loc.getY(), loc.getZ()));
+            List<Component> lore = new ArrayList<>();
+            lore.add(MiniMessage.miniMessage().deserialize("<gray>World: " + (world != null ? world.getName() : "Unknown") + "</gray>").decoration(TextDecoration.ITALIC, false));
+            lore.add(MiniMessage.miniMessage().deserialize("<gray>" + String.format("X: %.1f Y: %.1f Z: %.1f", loc.getX(), loc.getY(), loc.getZ()) + "</gray>").decoration(TextDecoration.ITALIC, false));
 
             List<String> allowedKits = spawnManager.getAllowedKits(spawnName);
             if (allowedKits != null && !allowedKits.isEmpty()) {
-                lore.add("Allowed kits: " + String.join(", ", allowedKits));
+                lore.add(MiniMessage.miniMessage().deserialize("<gray>Allowed kits: " + String.join(", ", allowedKits) + "</gray>").decoration(TextDecoration.ITALIC, false));
             } else {
-                lore.add("Allowed kits: All kits");
+                lore.add(MiniMessage.miniMessage().deserialize("<gray>Allowed kits: All kits</gray>").decoration(TextDecoration.ITALIC, false));
             }
-            infoMeta.setLore(lore);
+            infoMeta.lore(lore);
             infoItem.setItemMeta(infoMeta);
             setItem(INFO_SLOT, infoItem);
         }

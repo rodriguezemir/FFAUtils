@@ -1,6 +1,7 @@
 package site.zvolcan.fFAUtils.inventory;
 
 import fr.mrmicky.fastinv.FastInv;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
@@ -50,13 +51,13 @@ public class SpawnsInventory extends FastInv {
                 ItemStack item = new ItemStack(Material.COMPASS);
                 ItemMeta meta = item.getItemMeta();
                 meta.displayName(MiniMessage.miniMessage().deserialize("<white>" + name + "</white>").decoration(TextDecoration.ITALIC, false));
-                List<String> lore = new ArrayList<>();
-                lore.add(world != null ? world.getName() : "Unknown world");
+                List<Component> lore = new ArrayList<>();
+                lore.add(MiniMessage.miniMessage().deserialize("<gray>" + (world != null ? world.getName() : "Unknown world") + "</gray>").decoration(TextDecoration.ITALIC, false));
                 List<String> allowedKits = data.getAllowedKits();
                 if (allowedKits != null && !allowedKits.isEmpty()) {
-                    lore.add("Allowed kits: " + String.join(", ", allowedKits));
+                    lore.add(MiniMessage.miniMessage().deserialize("<gray>Allowed kits: " + String.join(", ", allowedKits) + "</gray>").decoration(TextDecoration.ITALIC, false));
                 }
-                meta.setLore(lore);
+                meta.lore(lore);
                 item.setItemMeta(meta);
 
                 int slot = PAGE_START_SLOT + (i - start);

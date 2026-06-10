@@ -1,14 +1,13 @@
 package site.zvolcan.fFAUtils.inventory;
 
 import fr.mrmicky.fastinv.FastInv;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-
-import site.zvolcan.fFAUtils.managers.KitManager;
 import site.zvolcan.fFAUtils.objects.Kit;
 
 import java.util.*;
@@ -49,9 +48,9 @@ public class KitsInventory extends FastInv {
                 ItemStack item = new ItemStack(Material.CHEST);
                 ItemMeta meta = item.getItemMeta();
                 meta.displayName(MiniMessage.miniMessage().deserialize("<white>" + name + "</white>").decoration(TextDecoration.ITALIC, false));
-                List<String> lore = new ArrayList<>();
-                lore.add(kit.getContents().length + " items");
-                meta.setLore(lore);
+                List<Component> lore = new ArrayList<>();
+                lore.add(MiniMessage.miniMessage().deserialize("<gray>" + kit.getContents().length + " items</gray>").decoration(TextDecoration.ITALIC, false));
+                meta.lore(lore);
                 item.setItemMeta(meta);
 
                 int slot = PAGE_START_SLOT + (i - start);
