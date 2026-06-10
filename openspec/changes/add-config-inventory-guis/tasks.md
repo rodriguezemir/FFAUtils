@@ -43,18 +43,18 @@ Chain strategy: pending
 
 ## Phase 3: Integration / Wiring
 
-- [ ] 3.1 Ensure `MainCommand` default handler only opens inventory for player senders (reject console with message).
-- [ ] 3.2 Verify inventory opens from sync context (command handler runs sync in Paper).
-- [ ] 3.3 Test navigation flow: Main → Spawns → detail → back → Kits → detail → back → Main.
+- [x] 3.1 Ensure `MainCommand` default handler only opens inventory for player senders (reject console with message).
+- [x] 3.2 Verify inventory opens from sync context (command handler runs sync in Paper).
+- [x] 3.3 Test navigation flow: Main → Spawns → detail → back → Kits → detail → back → Main.
 
 ## Phase 4: Testing
 
-- [ ] 4.1 Write unit tests for `ConfigMenuManager`: verify inventory creation sizes, pagination math (page bounds, item slicing), empty state handling (0 spawns/kits).
-- [ ] 4.2 Write unit tests for `SpawnsInventory` and `KitsInventory`: verify item rendering, pagination buttons visibility.
-- [ ] 4.3 Write integration test for `/ffautils` command: MockBukkit command dispatch, verify MainInventory opens for player with permission.
-- [ ] 4.4 Write integration test for navigation callbacks: verify click handlers open correct inventories.
+- [x] 4.1 Write unit tests for `ConfigMenuManager`: verify inventory creation sizes, pagination math (page bounds, item slicing), empty state handling (0 spawns/kits).
+- [x] 4.2 Write unit tests for `SpawnsInventory` and `KitsInventory`: verify item rendering, pagination buttons visibility.
+- [x] 4.3 Write integration test for `/ffautils` command: MockBukkit command dispatch, verify MainInventory opens for player with permission.
+- [x] 4.4 Write integration test for navigation callbacks: verify click handlers open correct inventories.
 
 ## Phase 5: Cleanup / Documentation
 
-- [ ] 5.1 Update any existing comments or documentation referencing command usage.
-- [ ] 5.2 Remove any temporary debugging code.
+- [x] 5.1 Update any existing comments or documentation referencing command usage.
+- [x] 5.2 Remove any temporary debugging code.
