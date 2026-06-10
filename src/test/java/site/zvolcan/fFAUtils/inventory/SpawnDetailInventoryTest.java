@@ -1,10 +1,12 @@
 package site.zvolcan.fFAUtils.inventory;
 
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +41,10 @@ class SpawnDetailInventoryTest {
         MockBukkit.unmock();
     }
 
+    private static String plainName(ItemStack item) {
+        return PlainTextComponentSerializer.plainText().serialize(item.getItemMeta().displayName());
+    }
+
     @Test
     void openSpawnDetail_shouldShowSpawnInfo() {
         World world = mock(World.class);
@@ -51,10 +57,8 @@ class SpawnDetailInventoryTest {
         configMenuManager.openSpawnDetail(player, "lobby");
         Inventory inv = player.getOpenInventory().getTopInventory();
         assertEquals(27, inv.getSize());
-        // Name item should be at slot 4
         assertNotNull(inv.getItem(4));
-        assertEquals("lobby", inv.getItem(4).getItemMeta().getDisplayName());
-        // Info item at slot 13 has world and coordinates in lore
+        assertEquals("lobby", plainName(inv.getItem(4)));
         assertNotNull(inv.getItem(13));
         assertNotNull(inv.getItem(13).getItemMeta().getLore());
         assertTrue(inv.getItem(13).getItemMeta().getLore().stream()

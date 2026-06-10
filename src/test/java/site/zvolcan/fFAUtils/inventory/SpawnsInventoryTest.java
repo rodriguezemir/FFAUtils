@@ -1,10 +1,12 @@
 package site.zvolcan.fFAUtils.inventory;
 
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +40,10 @@ class SpawnsInventoryTest {
         MockBukkit.unmock();
     }
 
+    private static String plainName(ItemStack item) {
+        return PlainTextComponentSerializer.plainText().serialize(item.getItemMeta().displayName());
+    }
+
     @Test
     void openSpawns_withNoSpawns_shouldShowPlaceholder() {
         when(spawnManager.getAllSpawnsData()).thenReturn(Collections.emptyMap());
@@ -46,7 +52,7 @@ class SpawnsInventoryTest {
         Inventory inv = player.getOpenInventory().getTopInventory();
         assertEquals(54, inv.getSize());
         assertNotNull(inv.getItem(22), "Placeholder item should be present");
-        assertEquals("No spawns configured", inv.getItem(22).getItemMeta().getDisplayName());
+        assertEquals("No spawns configured", plainName(inv.getItem(22)));
     }
 
     @Test
@@ -63,9 +69,8 @@ class SpawnsInventoryTest {
         configMenuManager.openSpawns(player, 0);
         Inventory inv = player.getOpenInventory().getTopInventory();
         assertEquals(54, inv.getSize());
-        // First spawn item should be at slot 0
         assertNotNull(inv.getItem(0), "Spawn item should be present");
-        assertEquals("lobby", inv.getItem(0).getItemMeta().getDisplayName());
+        assertEquals("lobby", plainName(inv.getItem(0)));
         assertTrue(inv.getItem(0).getItemMeta().getLore().contains("world"));
     }
 
@@ -142,7 +147,7 @@ class SpawnsInventoryTest {
         Inventory inv = player.getOpenInventory().getTopInventory();
         assertEquals(27, inv.getSize());
         assertNotNull(inv.getItem(22), "Back button should be present");
-        assertEquals("lobby", inv.getItem(4).getItemMeta().getDisplayName());
+        assertEquals("lobby", plainName(inv.getItem(4)));
     }
 
     @Test

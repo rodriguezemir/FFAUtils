@@ -1,8 +1,8 @@
 package site.zvolcan.fFAUtils.inventory;
 
 import fr.mrmicky.fastinv.FastInv;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -27,7 +27,7 @@ public class KitDetailInventory extends FastInv {
             // Kit name display
             ItemStack nameItem = new ItemStack(Material.NAME_TAG);
             ItemMeta nameMeta = nameItem.getItemMeta();
-            nameMeta.displayName(Component.text(kitName).decoration(TextDecoration.ITALIC, false));
+            nameMeta.displayName(MiniMessage.miniMessage().deserialize("<white>" + kitName + "</white>").decoration(TextDecoration.ITALIC, false));
             nameItem.setItemMeta(nameMeta);
             setItem(NAME_SLOT, nameItem);
 
@@ -47,7 +47,7 @@ public class KitDetailInventory extends FastInv {
         // Back button
         ItemStack backItem = new ItemStack(Material.ARROW);
         ItemMeta backMeta = backItem.getItemMeta();
-        backMeta.displayName(Component.text("Back").decoration(TextDecoration.ITALIC, false));
+        backMeta.displayName(MiniMessage.miniMessage().deserialize("<gray>Back</gray>").decoration(TextDecoration.ITALIC, false));
         backItem.setItemMeta(backMeta);
         setItem(BACK_SLOT, backItem, e -> configMenuManager.openKits((Player) e.getWhoClicked(), previousPage));
     }

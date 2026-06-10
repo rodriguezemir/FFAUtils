@@ -1,7 +1,10 @@
 package site.zvolcan.fFAUtils.inventory;
 
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,13 +50,17 @@ class ConfigMenuManagerTest {
         assertEquals("FFAUtils Config", player.getOpenInventory().getTitle());
     }
 
+    private static String plainName(ItemStack item) {
+        return PlainTextComponentSerializer.plainText().serialize(item.getItemMeta().displayName());
+    }
+
     @Test
     void openMain_shouldHaveSpawnsButtonAtSlot11() {
         Player player = server.addPlayer();
         configMenuManager.openMain(player);
         Inventory openInventory = player.getOpenInventory().getTopInventory();
         assertNotNull(openInventory.getItem(11), "Spawns button should be present");
-        assertEquals("Spawns", openInventory.getItem(11).getItemMeta().getDisplayName());
+        assertEquals("Spawns", plainName(openInventory.getItem(11)));
     }
 
     @Test
@@ -62,7 +69,7 @@ class ConfigMenuManagerTest {
         configMenuManager.openMain(player);
         Inventory openInventory = player.getOpenInventory().getTopInventory();
         assertNotNull(openInventory.getItem(15), "Kits button should be present");
-        assertEquals("Kits", openInventory.getItem(15).getItemMeta().getDisplayName());
+        assertEquals("Kits", plainName(openInventory.getItem(15)));
     }
 
     @Test

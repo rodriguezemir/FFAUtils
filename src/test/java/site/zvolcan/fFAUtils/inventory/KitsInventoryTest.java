@@ -1,5 +1,6 @@
 package site.zvolcan.fFAUtils.inventory;
 
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -38,6 +39,10 @@ class KitsInventoryTest {
         MockBukkit.unmock();
     }
 
+    private static String plainName(ItemStack item) {
+        return PlainTextComponentSerializer.plainText().serialize(item.getItemMeta().displayName());
+    }
+
     @Test
     void openKits_withNoKits_shouldShowPlaceholder() {
         when(kitManager.getAllKits()).thenReturn(Collections.emptyMap());
@@ -46,7 +51,7 @@ class KitsInventoryTest {
         Inventory inv = player.getOpenInventory().getTopInventory();
         assertEquals(54, inv.getSize());
         assertNotNull(inv.getItem(22), "Placeholder item should be present");
-        assertEquals("No kits configured", inv.getItem(22).getItemMeta().getDisplayName());
+        assertEquals("No kits configured", plainName(inv.getItem(22)));
     }
 
     @Test
@@ -61,8 +66,7 @@ class KitsInventoryTest {
         Inventory inv = player.getOpenInventory().getTopInventory();
         assertEquals(54, inv.getSize());
         assertNotNull(inv.getItem(0), "Kit item should be present");
-        assertEquals("archer", inv.getItem(0).getItemMeta().getDisplayName());
-        // Lore should show item count
+        assertEquals("archer", plainName(inv.getItem(0)));
         assertTrue(inv.getItem(0).getItemMeta().getLore().stream()
                 .anyMatch(l -> l.contains("1") || l.contains("item")));
     }
@@ -131,7 +135,7 @@ class KitsInventoryTest {
         Inventory inv = player.getOpenInventory().getTopInventory();
         assertEquals(27, inv.getSize());
         assertNotNull(inv.getItem(22), "Back button should be present");
-        assertEquals("archer", inv.getItem(4).getItemMeta().getDisplayName());
+        assertEquals("archer", plainName(inv.getItem(4)));
     }
 
     @Test

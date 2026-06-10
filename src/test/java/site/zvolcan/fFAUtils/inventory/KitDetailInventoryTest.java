@@ -1,5 +1,6 @@
 package site.zvolcan.fFAUtils.inventory;
 
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -36,6 +37,10 @@ class KitDetailInventoryTest {
         MockBukkit.unmock();
     }
 
+    private static String plainName(ItemStack item) {
+        return PlainTextComponentSerializer.plainText().serialize(item.getItemMeta().displayName());
+    }
+
     @Test
     void openKitDetail_shouldShowKitName() {
         Kit kit = new Kit("archer", new ItemStack[]{new ItemStack(Material.BOW)});
@@ -45,9 +50,8 @@ class KitDetailInventoryTest {
         configMenuManager.openKitDetail(player, "archer");
         Inventory inv = player.getOpenInventory().getTopInventory();
         assertEquals(27, inv.getSize());
-        // Name item at slot 4
         assertNotNull(inv.getItem(4));
-        assertEquals("archer", inv.getItem(4).getItemMeta().getDisplayName());
+        assertEquals("archer", plainName(inv.getItem(4)));
     }
 
     @Test
@@ -79,7 +83,7 @@ class KitDetailInventoryTest {
         assertEquals(27, inv.getSize());
         // Name should still be shown
         assertNotNull(inv.getItem(4));
-        assertEquals("empty", inv.getItem(4).getItemMeta().getDisplayName());
+        assertEquals("empty", plainName(inv.getItem(4)));
     }
 
     @Test
