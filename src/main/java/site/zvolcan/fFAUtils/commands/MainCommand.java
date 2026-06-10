@@ -8,6 +8,7 @@ import me.putindeer.api.util.PluginUtils;
 
 import java.util.logging.Logger;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import site.zvolcan.fFAUtils.FFAPlaceholders;
@@ -28,7 +29,8 @@ public final class MainCommand implements CommandExecutor {
     private final SpawnManager spawnManager;
     private final ConfigMenuManager configMenuManager;
 
-    public MainCommand(PluginUtils utils, FFAPlaceholders ffaPlaceholders, MessagesManager messagesManager, KitManager kitManager, SpawnManager spawnManager, ConfigMenuManager configMenuManager) {
+    public MainCommand(PluginUtils utils, FFAPlaceholders ffaPlaceholders, MessagesManager messagesManager,
+            KitManager kitManager, SpawnManager spawnManager, ConfigMenuManager configMenuManager) {
         this.utils = utils;
         this.ffaPlaceholders = ffaPlaceholders;
         this.messagesManager = messagesManager;
@@ -41,7 +43,8 @@ public final class MainCommand implements CommandExecutor {
     public LiteralCommandNode<CommandSourceStack> execute() {
         LiteralArgumentBuilder<CommandSourceStack> literal = Commands.literal("ffautils");
 
-        literal.requires(ctx -> ctx.getSender() instanceof Player && ctx.getSender().hasPermission("ffautils.commands.ffautils"));
+        literal.requires(ctx -> ctx.getSender() instanceof Player
+                && ctx.getSender().hasPermission("ffautils.commands.ffautils"));
         literal.executes(ctx -> {
             CommandSender sender = ctx.getSource().getSender();
             Player player = (Player) sender;
@@ -55,8 +58,10 @@ public final class MainCommand implements CommandExecutor {
             final Logger logger = FFAUtils.getInstance().getLogger();
             logger.info("Reloading Plugin...");
 
-            ffaPlaceholders.register();
-            logger.info("Loading Placeholders.");
+            if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+                ffaPlaceholders.register();
+                logger.info("Loading Placeholders.");
+            }
             messagesManager.registerMessages();
             logger.info("Loading Messages.");
             kitManager.loadAllKits();
@@ -67,8 +72,7 @@ public final class MainCommand implements CommandExecutor {
             utils.message(
                     sender,
                     Sounds.SUCCESS_SOUND,
-                    "<green>FFAUtils has been reloaded."
-            );
+                    "<green>FFAUtils has been reloaded.");
             return 0;
         }));
 

@@ -47,34 +47,56 @@ public class FFAUtils extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
+        getLogger().info("████████████████████████████████████████████████\r\n" + //
+                        "█▄─▄▄─█▄─▄▄─██▀▄─██▄─██─▄█─▄─▄─█▄─▄█▄─▄███─▄▄▄▄█\r\n" + //
+                        "██─▄████─▄████─▀─███─██─████─████─███─██▀█▄▄▄▄─█\r\n" + //
+                        "▀▄▄▄▀▀▀▄▄▄▀▀▀▄▄▀▄▄▀▀▄▄▄▄▀▀▀▄▄▄▀▀▄▄▄▀▄▄▄▄▄▀▄▄▄▄▄▀");
+
         saveDefaultConfig();
-        utils = new PluginUtils(this, YamlConfiguration.loadConfiguration(new File(getDataFolder(), "messages.yml")).getString("messages-prefix", "<b><gradient:#5472F4:#27A2C1>FFAUTILS</gradient></b> <dark_gray>▶️</dark_gray> "));
+        utils = new PluginUtils(this,
+                YamlConfiguration.loadConfiguration(new File(getDataFolder(), "messages.yml")).getString(
+                        "messages-prefix",
+                        "<b><gradient:#5472F4:#27A2C1>FFAUTILS</gradient></b> <dark_gray>▶️</dark_gray> "));
         spawnManager = new SpawnManager(this);
         spawnManager.registerSpawns();
+        getLogger().info("§bLoading Spawns");
         kitManager = new KitManager(this);
         kitManager.registerKits();
+        getLogger().info("§bLoading Kits");
         FastInvManager.register(this);
         configMenuManager = new ConfigMenuManager(spawnManager, kitManager);
+        getLogger().info("§bLoading ConfigMenu");
         combatLogManager = new CombatLogManager(this, getConfig().getLong("combatlog.timeout-ticks", 300L));
         combatLogManager.startCleanupTask();
+        getLogger().info("§bLoading CombatLog");
         lobbyManager = new LobbyManager(this);
+        getLogger().info("§bLoading LobbyManager");
         playersManager = new PlayersManager();
+        getLogger().info("§bLoading PlayersManager");
         statsManager = new StatsManager(this);
         statsManager.init();
+        getLogger().info("§bLoading StatsManager");
         messagesManager = new MessagesManager(this);
         messagesManager.registerMessages();
-        ffaPlaceholders = new FFAPlaceholders(this, statsManager);
-        ffaPlaceholders.register();
-        commandManager = new CommandManager(this, kitManager, spawnManager, lobbyManager, ffaPlaceholders, playersManager, configMenuManager);
-        getServer().getPluginManager().registerEvents(new PlayerConnectListener(this, lobbyManager, playersManager, spawnManager, statsManager), this);
+        getLogger().info("§bLoading Messages");
+        if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            ffaPlaceholders = new FFAPlaceholders(this, statsManager);
+            ffaPlaceholders.register();
+        }
+        commandManager = new CommandManager(this, kitManager, spawnManager, lobbyManager, ffaPlaceholders,
+                playersManager, configMenuManager);
+        getLogger().info("§bLoading Commands");
+                getServer().getPluginManager().registerEvents(
+                new PlayerConnectListener(this, lobbyManager, playersManager, spawnManager, statsManager), this);
         getServer().getPluginManager().registerEvents(lobbyManager, this);
-        
+
         deathEventManager = new DeathEventManager(this);
         saveResource("death-messages.yml", false);
         deathEventManager.registerDeathMessages();
         getServer().getPluginManager().registerEvents(
-            new PlayerDeathListener(deathEventManager, spawnManager, combatLogManager, statsManager, playersManager), this
-        );
+                new PlayerDeathListener(deathEventManager, spawnManager, combatLogManager, statsManager,
+                        playersManager),
+                this);
     }
 
     @Override
