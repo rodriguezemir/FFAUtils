@@ -1,6 +1,8 @@
 package site.zvolcan.fFAUtils.inventory;
 
 import fr.mrmicky.fastinv.FastInv;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -31,14 +33,14 @@ public class SpawnDetailInventory extends FastInv {
             // Spawn name display
             ItemStack nameItem = new ItemStack(Material.NAME_TAG);
             ItemMeta nameMeta = nameItem.getItemMeta();
-            nameMeta.setDisplayName(spawnName);
+            nameMeta.displayName(Component.text(spawnName).decoration(TextDecoration.ITALIC, false));
             nameItem.setItemMeta(nameMeta);
             setItem(NAME_SLOT, nameItem);
 
             // Info item with world and coordinates
             ItemStack infoItem = new ItemStack(Material.PAPER);
             ItemMeta infoMeta = infoItem.getItemMeta();
-            infoMeta.setDisplayName("Spawn Info");
+            infoMeta.displayName(Component.text("Spawn Info").decoration(TextDecoration.ITALIC, false));
             List<String> lore = new ArrayList<>();
             lore.add("World: " + (world != null ? world.getName() : "Unknown"));
             lore.add(String.format("X: %.1f Y: %.1f Z: %.1f", loc.getX(), loc.getY(), loc.getZ()));
@@ -57,7 +59,7 @@ public class SpawnDetailInventory extends FastInv {
         // Back button
         ItemStack backItem = new ItemStack(Material.ARROW);
         ItemMeta backMeta = backItem.getItemMeta();
-        backMeta.setDisplayName("Back");
+        backMeta.displayName(Component.text("Back").decoration(TextDecoration.ITALIC, false));
         backItem.setItemMeta(backMeta);
         setItem(BACK_SLOT, backItem, e -> configMenuManager.openSpawns((Player) e.getWhoClicked(), previousPage));
     }
