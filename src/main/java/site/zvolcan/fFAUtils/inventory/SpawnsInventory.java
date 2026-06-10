@@ -58,7 +58,7 @@ public class SpawnsInventory extends FastInv {
                 item.setItemMeta(meta);
 
                 int slot = PAGE_START_SLOT + (i - start);
-                setItem(slot, item, e -> configMenuManager.openSpawnDetail((Player) e.getWhoClicked(), name));
+                setItem(slot, item, e -> configMenuManager.openSpawnDetail((Player) e.getWhoClicked(), name, page));
             }
         }
 

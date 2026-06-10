@@ -125,6 +125,27 @@ class SpawnsInventoryTest {
     }
 
     @Test
+    void openSpawnDetail_shouldPreservePreviousPage() {
+        ConfigMenuManager spyManager = spy(configMenuManager);
+        World world = mock(World.class);
+        when(world.getName()).thenReturn("world");
+        Location loc = new Location(world, 10.0, 64.0, 200.0);
+        SpawnManager.SpawnData data = new SpawnManager.SpawnData(loc, null);
+        Map<String, SpawnManager.SpawnData> spawns = new LinkedHashMap<>();
+        spawns.put("lobby", data);
+        when(spawnManager.getAllSpawnsData()).thenReturn(spawns);
+        when(spawnManager.getSpawn("lobby")).thenReturn(loc);
+        when(spawnManager.getAllowedKits("lobby")).thenReturn(null);
+
+        Player player = server.addPlayer();
+        new SpawnDetailInventory(spyManager, "lobby", 2).open(player);
+        Inventory inv = player.getOpenInventory().getTopInventory();
+        assertEquals(27, inv.getSize());
+        assertNotNull(inv.getItem(22), "Back button should be present");
+        assertEquals("lobby", inv.getItem(4).getItemMeta().getDisplayName());
+    }
+
+    @Test
     void openSpawns_withAllowedKits_shouldShowKitsInLore() {
         World world = mock(World.class);
         when(world.getName()).thenReturn("world");

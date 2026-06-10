@@ -53,7 +53,7 @@ public class KitsInventory extends FastInv {
                 item.setItemMeta(meta);
 
                 int slot = PAGE_START_SLOT + (i - start);
-                setItem(slot, item, e -> configMenuManager.openKitDetail((Player) e.getWhoClicked(), name));
+                setItem(slot, item, e -> configMenuManager.openKitDetail((Player) e.getWhoClicked(), name, page));
             }
         }
 

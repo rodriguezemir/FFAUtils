@@ -119,6 +119,22 @@ class KitsInventoryTest {
     }
 
     @Test
+    void openKitDetail_shouldPreservePreviousPage() {
+        Kit kit = new Kit("archer", new ItemStack[]{new ItemStack(Material.BOW)});
+        Map<String, Kit> kits = new LinkedHashMap<>();
+        kits.put("archer", kit);
+        when(kitManager.getAllKits()).thenReturn(kits);
+        when(kitManager.getKit("archer")).thenReturn(kit);
+
+        Player player = server.addPlayer();
+        new KitDetailInventory(configMenuManager, "archer", 3).open(player);
+        Inventory inv = player.getOpenInventory().getTopInventory();
+        assertEquals(27, inv.getSize());
+        assertNotNull(inv.getItem(22), "Back button should be present");
+        assertEquals("archer", inv.getItem(4).getItemMeta().getDisplayName());
+    }
+
+    @Test
     void openKits_withMultipleItems_shouldShowItemCount() {
         Kit kit = new Kit("warrior", new ItemStack[]{
                 new ItemStack(Material.IRON_SWORD),
