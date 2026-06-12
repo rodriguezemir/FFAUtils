@@ -78,7 +78,7 @@ public final class LoadMeCommand implements CommandExecutor {
                             return 1;
                         }
 
-                        player.getInventory().setContents(kit.getContents());
+                        kitManager.applyKit(player, kit);
                         player.teleport(spawn);
 
                         FFAPlayer ffaPlayer = playersManager.getFFAPlayer(player);

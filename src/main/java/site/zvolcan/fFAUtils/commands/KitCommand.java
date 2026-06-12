@@ -48,7 +48,7 @@ public final class KitCommand implements CommandExecutor {
                 );
                 return 1;
             }
-            player.getInventory().setContents(kit.getContents());
+            kitManager.applyKit(player, kit);
             plugin.getUtils().message(player, Sounds.SUCCESS_SOUND,
                     MessagesManager.getInstance().getMessage(
                             "kit-applied", "{name}", name

@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import site.zvolcan.fFAUtils.FFAPlaceholders;
 import site.zvolcan.fFAUtils.FFAUtils;
 import site.zvolcan.fFAUtils.commands.abs.CommandExecutor;
+import site.zvolcan.fFAUtils.managers.DeathEventManager;
 import site.zvolcan.fFAUtils.managers.KitManager;
 import site.zvolcan.fFAUtils.managers.MessagesManager;
 import site.zvolcan.fFAUtils.managers.SpawnManager;
@@ -28,15 +29,18 @@ public final class MainCommand implements CommandExecutor {
     private final KitManager kitManager;
     private final SpawnManager spawnManager;
     private final ConfigMenuManager configMenuManager;
+    private final DeathEventManager deathEventManager;
 
     public MainCommand(PluginUtils utils, FFAPlaceholders ffaPlaceholders, MessagesManager messagesManager,
-            KitManager kitManager, SpawnManager spawnManager, ConfigMenuManager configMenuManager) {
+            KitManager kitManager, SpawnManager spawnManager, ConfigMenuManager configMenuManager,
+            DeathEventManager deathEventManager) {
         this.utils = utils;
         this.ffaPlaceholders = ffaPlaceholders;
         this.messagesManager = messagesManager;
         this.kitManager = kitManager;
         this.spawnManager = spawnManager;
         this.configMenuManager = configMenuManager;
+        this.deathEventManager = deathEventManager;
     }
 
     @Override
@@ -68,6 +72,8 @@ public final class MainCommand implements CommandExecutor {
             logger.info("Loading Kits.");
             spawnManager.loadAllSpawns();
             logger.info("Loading Spawns.");
+            deathEventManager.registerDeathMessages();
+            logger.info("Loading Death Messages.");
 
             utils.message(
                     sender,
