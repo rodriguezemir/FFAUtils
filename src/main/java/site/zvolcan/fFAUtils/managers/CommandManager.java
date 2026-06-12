@@ -19,8 +19,11 @@ public final class CommandManager {
     private final FFAPlaceholders ffaPlaceholders;
     private final PlayersManager playersManager;
     private final ConfigMenuManager configMenuManager;
+    private final DeathEventManager deathEventManager;
 
-    public CommandManager(FFAUtils plugin, KitManager kitManager, SpawnManager spawnManager, LobbyManager lobbyManager, FFAPlaceholders ffaPlaceholders, PlayersManager playersManager, ConfigMenuManager configMenuManager) {
+    public CommandManager(FFAUtils plugin, KitManager kitManager, SpawnManager spawnManager, LobbyManager lobbyManager,
+            FFAPlaceholders ffaPlaceholders, PlayersManager playersManager, ConfigMenuManager configMenuManager,
+            DeathEventManager deathEventManager) {
         this.plugin = plugin;
         this.kitManager = kitManager;
         this.spawnManager = spawnManager;
@@ -28,6 +31,7 @@ public final class CommandManager {
         this.ffaPlaceholders = ffaPlaceholders;
         this.playersManager = playersManager;
         this.configMenuManager = configMenuManager;
+        this.deathEventManager = deathEventManager;
         registerCommands();
     }
 
@@ -38,7 +42,8 @@ public final class CommandManager {
         list.add(new LoadMeCommand(plugin, kitManager, spawnManager, playersManager));
         list.add(new SpawnCommand(spawnManager, lobbyManager));
         list.add(new DeadCommand());
-        list.add(new MainCommand(plugin.getUtils(), ffaPlaceholders, plugin.getMessagesManager(), kitManager, spawnManager, configMenuManager));
+        list.add(new MainCommand(plugin.getUtils(), ffaPlaceholders, plugin.getMessagesManager(), kitManager,
+                spawnManager, configMenuManager, deathEventManager));
         list.add(new SetSpawnCommand(spawnManager, kitManager, plugin.getUtils()));
 
         plugin.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, (cmd) -> {
