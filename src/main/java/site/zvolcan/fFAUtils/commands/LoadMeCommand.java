@@ -27,7 +27,8 @@ public final class LoadMeCommand implements CommandExecutor {
     private final SpawnManager spawnManager;
     private final PlayersManager playersManager;
 
-    public LoadMeCommand(FFAUtils plugin, KitManager kitManager, SpawnManager spawnManager, PlayersManager playersManager) {
+    public LoadMeCommand(FFAUtils plugin, KitManager kitManager, SpawnManager spawnManager,
+            PlayersManager playersManager) {
         this.plugin = plugin;
         this.kitManager = kitManager;
         this.spawnManager = spawnManager;
@@ -39,55 +40,55 @@ public final class LoadMeCommand implements CommandExecutor {
         LiteralArgumentBuilder<CommandSourceStack> literal = Commands.literal("loadme");
 
         literal.then(
-            Commands.argument("kit", StringArgumentType.word())
-                .then(Commands.argument("spawn", StringArgumentType.word())
-                    .executes(ctx -> {
-                        CommandSourceStack source = ctx.getSource();
-                        CommandSender sender = source.getSender();
-                        if (!(sender instanceof Player player)) {
-                            sender.sendMessage(MessagesManager.getInstance()
-                                    .getMessage("only-players-execute"));
-                            return 1;
-                        }
-                        String kitName = StringArgumentType.getString(ctx, "kit");
-                        String spawnName = StringArgumentType.getString(ctx, "spawn");
-                        Kit kit = kitManager.getKit(kitName);
-                        if (kit == null) {
-                            plugin.getUtils().message(player, Sounds.ERROR_SOUND,
-                                    MessagesManager.getInstance().getMessage(
-                                            "kit-not-found", "{name}", kitName
-                                    )
-                            );
-                            return 1;
-                        }
-                        final Location spawn = spawnManager.getSpawn(spawnName);
-                        if (spawn == null) {
-                            plugin.getUtils().message(player, Sounds.ERROR_SOUND,
-                                    MessagesManager.getInstance().getMessage(
-                                            "spawn-not-found", "{spawn}", spawnName
-                                    )
-                            );
-                            return 1;
-                        }
+                Commands.argument("kit", StringArgumentType.word())
+                        .then(Commands.argument("spawn", StringArgumentType.word())
+                                .executes(ctx -> {
+                                    CommandSourceStack source = ctx.getSource();
+                                    CommandSender sender = source.getSender();
+                                    if (!(sender instanceof Player player)) {
+                                        sender.sendMessage(MessagesManager.getInstance()
+                                                .getMessage("only-players-execute"));
+                                        return 1;
+                                    }
+                                    FFAPlayer ffaPlayer = playersManager.getFFAPlayer(player);
+                                    if (ffaPlayer.getState() != PlayerState.LOBBY) {
+                                        plugin.getUtils().message(player, Sounds.ERROR_SOUND,
+                                                MessagesManager.getInstance().getMessage(
+                                                        "player-already-in-ffa"));
+                                    }
 
-                        // Kit-list validation: check spawn's allowed-kits restriction
-                        List<String> allowedKits = spawnManager.getAllowedKits(spawnName);
-                        if (!SpawnManager.isKitAllowedAtSpawn(allowedKits, kitName)) {
-                            plugin.getUtils().message(player, Sounds.ERROR_SOUND,
-                                    MessagesManager.getInstance().getMessage("kit-not-allowed-for-spawn"));
-                            return 1;
-                        }
+                                    String kitName = StringArgumentType.getString(ctx, "kit");
+                                    String spawnName = StringArgumentType.getString(ctx, "spawn");
+                                    Kit kit = kitManager.getKit(kitName);
+                                    if (kit == null) {
+                                        plugin.getUtils().message(player, Sounds.ERROR_SOUND,
+                                                MessagesManager.getInstance().getMessage(
+                                                        "kit-not-found", "{name}", kitName));
+                                        return 1;
+                                    }
+                                    final Location spawn = spawnManager.getSpawn(spawnName);
+                                    if (spawn == null) {
+                                        plugin.getUtils().message(player, Sounds.ERROR_SOUND,
+                                                MessagesManager.getInstance().getMessage(
+                                                        "spawn-not-found", "{spawn}", spawnName));
+                                        return 1;
+                                    }
 
-                        kitManager.applyKit(player, kit);
-                        player.teleport(spawn);
+                                    // Kit-list validation: check spawn's allowed-kits restriction
+                                    List<String> allowedKits = spawnManager.getAllowedKits(spawnName);
+                                    if (!SpawnManager.isKitAllowedAtSpawn(allowedKits, kitName)) {
+                                        plugin.getUtils().message(player, Sounds.ERROR_SOUND,
+                                                MessagesManager.getInstance().getMessage("kit-not-allowed-for-spawn"));
+                                        return 1;
+                                    }
 
-                        FFAPlayer ffaPlayer = playersManager.getFFAPlayer(player);
-                        ffaPlayer.setLastKit(kit);
-                        ffaPlayer.setLastSpawn(spawn);
-                        return 1;
-                    })
-                )
-        );
+                                    kitManager.applyKit(player, kit);
+                                    player.teleport(spawn);
+
+                                    ffaPlayer.setLastKit(kit);
+                                    ffaPlayer.setLastSpawn(spawn);
+                                    return 1;
+                                })));
 
         return literal.build();
     }
