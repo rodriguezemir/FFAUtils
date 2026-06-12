@@ -31,7 +31,8 @@ public class SpawnManager {
     }
 
     /**
-     * Value object holding a spawn's location and optional allowed-kit restriction list.
+     * Value object holding a spawn's location and optional allowed-kit restriction
+     * list.
      * Kit names are normalized to lowercase on construction.
      * Null or empty {@code allowedKits} means all kits are permitted.
      */
@@ -42,12 +43,14 @@ public class SpawnManager {
 
         public SpawnData(@NotNull Location location, @Nullable List<String> allowedKits) {
             this.location = location;
-            this.allowedKits = allowedKits == null ? null :
-                allowedKits.stream().map(String::toLowerCase).collect(Collectors.toList());
+            this.allowedKits = allowedKits == null ? null
+                    : allowedKits.stream().map(String::toLowerCase).collect(Collectors.toList());
         }
 
         @NotNull
-        public Location getLocation() { return location; }
+        public Location getLocation() {
+            return location;
+        }
 
         @Nullable
         public List<String> getAllowedKits() {
@@ -90,10 +93,14 @@ public class SpawnManager {
         return data == null ? null : data.getAllowedKits();
     }
 
-    /** Adds a kit to the spawn's allowed list (lowercased). No-op if already present. */
+    /**
+     * Adds a kit to the spawn's allowed list (lowercased). No-op if already
+     * present.
+     */
     public void addAllowedKit(String spawnName, String kitName) {
         SpawnData data = spawns.get(spawnName);
-        if (data == null) return;
+        if (data == null)
+            return;
 
         String lowerKit = kitName.toLowerCase();
         List<String> current = data.getAllowedKits();
@@ -113,11 +120,13 @@ public class SpawnManager {
     /** Removes a kit from the spawn's allowed list. No-op if not present. */
     public void removeAllowedKit(String spawnName, String kitName) {
         SpawnData data = spawns.get(spawnName);
-        if (data == null) return;
+        if (data == null)
+            return;
 
         String lowerKit = kitName.toLowerCase();
         List<String> current = data.getAllowedKits();
-        if (current == null) return;
+        if (current == null)
+            return;
 
         List<String> newList = new ArrayList<>(current);
         newList.remove(lowerKit);
@@ -133,12 +142,14 @@ public class SpawnManager {
     /**
      * Pure containment check: determines if a kit is allowed at a spawn
      * based on the spawn's allowed-kits list.
+     * 
      * @param allowedKits the spawn's allowed-kits (null or empty = all allowed)
-     * @param kitName the kit name to check (lowercased internally)
+     * @param kitName     the kit name to check (lowercased internally)
      * @return true if the kit is allowed
      */
     public static boolean isKitAllowedAtSpawn(@Nullable List<String> allowedKits, String kitName) {
-        if (allowedKits == null || allowedKits.isEmpty()) return true;
+        if (allowedKits == null || allowedKits.isEmpty())
+            return true;
         return allowedKits.contains(kitName.toLowerCase());
     }
 
@@ -199,10 +210,12 @@ public class SpawnManager {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> data = gson.fromJson(reader, Map.class);
                 String worldName = (String) data.get("world");
-                if (worldName == null) continue;
+                if (worldName == null)
+                    continue;
 
                 org.bukkit.World world = plugin.getServer().getWorld(worldName);
-                if (world == null) continue;
+                if (world == null)
+                    continue;
 
                 double x = ((Number) data.get("x")).doubleValue();
                 double y = ((Number) data.get("y")).doubleValue();
@@ -210,7 +223,8 @@ public class SpawnManager {
                 float yaw = ((Number) data.get("yaw")).floatValue();
                 float pitch = ((Number) data.get("pitch")).floatValue();
 
-                // Read allowed-kits if present (backward compatible — null means all kits allowed)
+                // Read allowed-kits if present (backward compatible — null means all kits
+                // allowed)
                 List<String> allowedKits = null;
                 if (data.containsKey("allowed-kits")) {
                     Object raw = data.get("allowed-kits");

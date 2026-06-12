@@ -9,3 +9,9 @@ items:
     material: "PLAYER_HEAD"
     display-name: "<red>Stats"
     command: "stats"
+
+# Respawn item given to players who die with a kit and spawn loaded
+respawn-item:
+  material: "PINK_DYE"
+  display-name: "<yellow>Respawn"
+  slot: 4
