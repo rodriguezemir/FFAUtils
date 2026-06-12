@@ -18,7 +18,8 @@ public class PlayerConnectListener implements Listener {
     private final SpawnManager spawnManager;
     private final StatsManager statsManager;
 
-    public PlayerConnectListener(@NotNull FFAUtils plugin, LobbyManager lobbyManager, PlayersManager playersManager, SpawnManager spawnManager, StatsManager statsManager) {
+    public PlayerConnectListener(@NotNull FFAUtils plugin, LobbyManager lobbyManager, PlayersManager playersManager,
+            SpawnManager spawnManager, StatsManager statsManager) {
         this.lobbyManager = lobbyManager;
         this.playersManager = playersManager;
         this.combatLogManager = plugin.getCombatLogManager();
@@ -31,7 +32,9 @@ public class PlayerConnectListener implements Listener {
         final Player player = event.getPlayer();
         playersManager.removePlayer(player);
         statsManager.unloadPlayer(player.getUniqueId());
+        lobbyManager.clearPendingRespawn(player.getUniqueId());
         if (combatLogManager.isInCombat(player.getUniqueId())) {
+            combatLogManager.removeFromCombat(player.getUniqueId());
             player.setHealth(0);
         }
     }
