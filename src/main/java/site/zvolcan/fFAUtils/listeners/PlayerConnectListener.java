@@ -64,6 +64,7 @@ public class PlayerConnectListener implements Listener {
     public void joinPlayer(PlayerJoinEvent event) {
         final Player player = event.getPlayer();
         playersManager.createPlayer(player);
+        statsManager.loadPlayer(player.getUniqueId());
         lobbyManager.addLobbyItems(player);
         player.teleport(spawnManager.getLobbySpawn());
         // Warm the MCTiers cache so the spawn gate resolves without a round trip.
