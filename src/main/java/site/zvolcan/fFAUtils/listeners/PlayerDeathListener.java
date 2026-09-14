@@ -91,7 +91,7 @@ public class PlayerDeathListener implements Listener {
         if (player.getKiller() != null) {
             final Player killer = player.getKiller();
             double healthBefore = killer.getHealth();
-            double maxHealth = 20;
+            double maxHealth = killer.getMaxHealth();
             killer.setHealth(maxHealth);
             double healed = maxHealth - healthBefore;
             killer.sendActionBar(MiniMessage.miniMessage().deserialize(
