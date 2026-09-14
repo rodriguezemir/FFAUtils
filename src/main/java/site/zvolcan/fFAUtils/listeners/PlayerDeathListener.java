@@ -1,6 +1,7 @@
 package site.zvolcan.fFAUtils.listeners;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -91,7 +92,7 @@ public class PlayerDeathListener implements Listener {
         if (player.getKiller() != null) {
             final Player killer = player.getKiller();
             double healthBefore = killer.getHealth();
-            double maxHealth = 20;
+            double maxHealth = killer.getAttribute(Attribute.MAX_HEALTH).getValue();
             killer.setHealth(maxHealth);
             double healed = maxHealth - healthBefore;
             killer.sendActionBar(MiniMessage.miniMessage().deserialize(

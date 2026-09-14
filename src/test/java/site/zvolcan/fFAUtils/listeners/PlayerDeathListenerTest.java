@@ -1,5 +1,7 @@
 package site.zvolcan.fFAUtils.listeners;
 
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.junit.jupiter.api.AfterAll;
@@ -373,6 +375,9 @@ class PlayerDeathListenerTest {
         killerFfa.setKillstreak(killstreak);
         when(playersManager.getFFAPlayer(killer)).thenReturn(killerFfa);
         when(killer.getHealth()).thenReturn(20.0);
+        AttributeInstance maxHealth = mock(AttributeInstance.class);
+        when(killer.getAttribute(Attribute.MAX_HEALTH)).thenReturn(maxHealth);
+        when(maxHealth.getValue()).thenReturn(20.0);
         return killerFfa;
     }
 }
