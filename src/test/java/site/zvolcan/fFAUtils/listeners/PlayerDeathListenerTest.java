@@ -373,6 +373,7 @@ class PlayerDeathListenerTest {
         killerFfa.setKillstreak(killstreak);
         when(playersManager.getFFAPlayer(killer)).thenReturn(killerFfa);
         when(killer.getHealth()).thenReturn(20.0);
+        when(killer.getMaxHealth()).thenReturn(20.0);
         return killerFfa;
     }
 }
