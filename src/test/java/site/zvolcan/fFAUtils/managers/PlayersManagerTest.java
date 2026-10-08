@@ -20,6 +20,19 @@ class PlayersManagerTest {
     }
 
     @Test
+    void registerPlayer_usesLoadedProfileIdentity() {
+        var player = org.mockito.Mockito.mock(org.bukkit.entity.Player.class);
+        UUID uuid = UUID.randomUUID();
+        org.mockito.Mockito.when(player.getUniqueId()).thenReturn(uuid);
+        var loaded = new site.zvolcan.fFAUtils.objects.FFAPlayer(uuid);
+        loaded.setKills(12);
+        playersManager.registerPlayer(loaded);
+        playersManager.createPlayer(player);
+        assertSame(loaded, playersManager.getFFAPlayer(player));
+        assertEquals(12, playersManager.getFFAPlayer(player).getKills());
+    }
+
+    @Test
     void removePlayer_shouldRemoveUuidFromMap() {
         UUID uuid = UUID.randomUUID();
         org.bukkit.entity.Player mockPlayer = org.mockito.Mockito.mock(org.bukkit.entity.Player.class);
