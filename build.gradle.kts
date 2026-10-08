@@ -34,6 +34,8 @@ dependencies {
     testImplementation("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    // Paper supplies SQLite at runtime; integration tests need their own driver.
+    testRuntimeOnly("org.xerial:sqlite-jdbc:3.49.1.0")
     testImplementation("org.mockito:mockito-core:5.12.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.12.0")
     testImplementation("me.clip:placeholderapi:2.12.2")
