@@ -1,39 +1,59 @@
 # Personal kit editor
 ## Objective
-Save each player's kit layout in FFAPlayer Map<String, ItemStack[]> and load/save it on join/quit, without modifying shared kit definitions.
+Store each player's kit layout in FFAPlayer Map<String, ItemStack[]>; load/save it on join/quit without changing shared kit definitions.
 ## Agreed behavior
-- Rearrangement only: item identity, metadata and quantities must match the current global kit.
-- Restore default removes only the personal override.
-- Global kit changes invalidate saved layouts; deleted global kits remain unavailable.
-- Preserve 41 slots, including interior/trailing null/AIR, armor and offhand. No auto-equip for personal layouts.
-- Defensive copies prevent shared mutable inventory data.
+- Rearrangement only: preserve item identity, metadata and aggregate quantities; stack splitting/merging is allowed.
+- Restore default removes only that player's override.
+- Global definition changes invalidate personal layouts; deleted global kits cannot be applied through an old Kit object.
+- Preserve all 41 positions, including null/AIR, armor and offhand; no personal-layout armor auto-equip.
+- Clone arrays/stacks on storage and retrieval.
 ## Scope and constraints
-Profile ownership, SQLite persistence, personal editor/list/detail, central kit application, focused tests. Authorized verification repair: only configuration fixture in CombatDamageIntegrationTest.java, no combat production edits.
-One writer at a time. Existing English repository artifact conventions apply.
-Branch: feat/personal-kit-editor. No commits/push/PR without explicit user request; commit evidence pending authorization.
+Profile ownership, SQLite persistence, personal GUI, central application and tests.
+User additionally authorized only configuration-fixture repair in CombatDamageIntegrationTest.java; no combat production behavior changes.
+Single writer; preserve unrelated config/messages/combat/version changes.
+Branch: feat/personal-kit-editor. Parent/workers did not stage, commit, push or open PRs.
+User confirmed external commits were intentional. Do not rewrite them.
 ## Tasks
-- [x] T1 (verified; commit pending authorization): Add isolated personal-kit storage and slot-preserving persistence; share the loaded FFAPlayer on join and save it on quit/disable.
-- [x] T2 (writer verified; independent closure pending; commit pending authorization): Make GUI edits/restoration personal, enforce rearrangement-only validation, invalidate stale overrides and centrally apply exact personal layouts.
-- [ ] T3 (in_progress): Verify focused/full tests and build, review candidate if enabled, and document evidence/limitations.
-## Acceptance and checks
-T1: two-player isolation, defensive copies, exact 41-slot codec round trips (empty, AIR, armor/offhand, metadata), save/unload/reload and override deletion, same join instance, legacy stats compatibility.
-T2: global data unchanged by GUI; reopen/reset uses effective personal kit; safe restore-default; reject missing/extra/changed items; unchanged item quantities after cursor/drop handling; exact saved-slot application; changed globals invalidate override.
-T3: ./gradlew test and ./gradlew build; focused tests first, native review is not functional verification. In-server GUI smoke checks must be reported pending if no server/client is exercised.
-## Verification policy
-Deterministic behavior tests are applicable: observe RED before implementation, GREEN afterward, then refactor with tests. Record actual commands/results; never infer lifecycle evidence.
-## Progress / evidence
-Read-only exploration completed. Current gameplay and StatsManager profiles are disconnected; global serializer loses trailing empty slots; default application auto-equips armor. User resolved three product questions.
-T1 implemented; writer reports 21 focused tests passing and git diff --check passing. Initial RED was preimplementation compilation failure with diagnostics suppressed, not confirmed behavioral assertion RED. An intermediate SQLite setup failure was fixed by test-runtime JDBC; invalid CAVE_AIR fixture corrected. Live server smoke checks pending. RDD switch previously read on; native ASSESS unavailable (package-local-binary-missing), treated as high risk and independent verification required.
-T1 worker stopped before edits because the task document disappeared. Parent confirmed same repository/branch, restored this document from Engram; cause unproven. Concurrent changes to gradle.properties, CombatLogManager.java and config.yml must be preserved. No tests had run at that early stop.
-Independent T1 verification: fresh focused --no-configuration-cache --rerun-tasks passed 21 tests, zero skips/failures/errors (19s, 4 executed tasks); git diff --check passed. Found candidate-caused retained-profile reconnect runtime-state gap: failed unload save retains IN_FFA/killstreak/lastKit/lastSpawn and join does not reset them. T1 remains open until correction verification.
-T1 correction implemented: reset LOBBY/killstreak/lastKit/lastSpawn before lobby equipment. Real SQLite failed-save -> quit -> reconnect -> successful retry regression observed RED 9 tests/1 failure; GREEN and refactor rerun 9/9. Stats/layout/fingerprint and shared identity preserved. Parent git diff --check passed. Independent corrected suite passed fresh: 22 tests, zero failures/errors/skips; 17s, 4 Gradle tasks executed. Reset order and real SQLite reconnect/retry verified. T1 functional work accepted, commit remains pending explicit authorization.
-T2 implemented in 10 files (981 insertions/71 deletions including new files). Writer fresh 24-test suite passed (12s, 4 executed tasks), no skips/failures/errors, git diff --check passed. Behavioral REDs observed for stale unregistered Kit application, identity-safe deferred cleanup, and AIR-marker retention. Conservation checks aggregate metadata identity and quantity; GUI saves/removal personal only, exact personal application, global fingerprint plus content validation. Full suite/build and independent T2 verification pending. MockBukkit limitations: 43 slots/AIR normalization; captured 41-slot API arguments and codec metadata round-trip used, global Gson reload not exercised successfully.
-Native review preflight attempted once after T2: INSPECT blocked native-status-package-binary-missing, lineage_created=false, mutation_performed=false. ASSESS unavailable; independent verifier required. Provider continuation: If GENTLE_PI_SKIP_GENTLE_AI_INSTALL is set, remove or unset it before changing to the installed gentle-pi package directory and running node scripts/install-gentle-ai.mjs. Installation not attempted (outside authorized repository work). No native review approval claimed.
-Integrated independent ./gradlew test build --no-configuration-cache --rerun-tasks failed at :test (exit 1, 25s, 6 tasks executed). Fresh XML: 25 suites /280 tests /1 failure /0 errors/skips. All 10 candidate suites passed 46/46 (T1 22/T2 24). Sole failing CombatDamageIntegrationTest.onEntityDamageByEntity_shouldMarkBothPlayersInCombat: config-null NPE at CombatLogManager.java:34 /test:101. Read-only HEAD/diff proves excluded concurrent combat change introduced config access; candidate damage handler unchanged. Build still unverified. User explicitly authorized adjusting only configuration mock fixture src/test/java/site/zvolcan/fFAUtils/listeners/CombatDamageIntegrationTest.java and rerunning full tests/build; combat production behavior/source unchanged. Build tasks downstream remain pending, no successful build claimed.
-Authorized fixture repair completed: CombatDamageIntegrationTest.java only, six additions (real YamlConfiguration; unrelated entry notification disabled explicitly). Original both-player assertions unchanged. Focused RED 1 test/1 config-null NPE; GREEN and fresh repeat 1/1, no skips/errors. Parent exact diff readback and git diff --check passed. Fresh full integrated test/build rerun now pending. Native ASSESS still unavailable, explicit outcome unavailable, independent verification required.
-## Work-unit boundaries
-T1: personal storage/persistence/lifecycle with tests. T2: editor/application/invalidation with tests.
-Rollback: remove the relevant unit's changes without touching global kit files or existing stats rows.
-Commit identities: pending explicit authorization.
+- [x] T1 (independently verified; user commits recorded): Isolated personal storage, exact-slot persistence, shared loaded profile ownership and quit/disable saves.
+- [x] T2 (independently verified; user commits recorded): Personal-only GUI/restore-default, conservation validation, stale override invalidation and exact central application.
+- [ ] T3 (automated checks complete; remaining checks blocked/pending): Final tests/build/native review and live Paper smoke checks.
+## Acceptance / implementation
+T1: two-player isolation, defensive copies, metadata and full-array codec round trips, real SQLite save/unload/reload/removal, legacy stats compatibility, failed-load write guards, shared join instance and combat-death-before-save ordering.
+T2: no GUI global writes/deletion; effective personal reopen/reset/list; personal restore-default; reject missing/extra/metadata-changing items; fingerprint plus conservation against current global definition; exact saved slots with default legacy auto-equip unchanged.
+Session tests cover snapshot/cursor restoration, item ingress/egress/use guards, equipment editing, save/cancel/close/quit and session-identity-safe deferred cleanup.
+## Verification evidence
+- T1 writer: initial preimplementation compiler RED had suppressed diagnostics, so behavioral assertion RED is not established for initial storage work. Final focused suite initially passed 21 tests.
+- Independent T1 found retained dirty profiles reconnecting with stale runtime state. Real SQLite failed-save -> quit -> reconnect -> retry regression observed RED (9 tests/1 failure), then GREEN/refactor 9/9. Join resets only LOBBY/killstreak/lastKit/lastSpawn before lobby equipment. Independent corrected suite passed 22 fresh tests.
+- T2 assertion REDs observed for unregistered old Kit application, deferred cleanup identity and AIR retention. Final fresh focused suite passed 24/24.
+- First full integrated run failed: 280 tests/1 failure, all 46 personal-kit tests passing. CombatDamageIntegrationTest failed before assertions because excluded concurrent CombatLogManager config access met a null mock.
+- User-authorized fixture-only repair: six additions, real YamlConfiguration, unrelated notification disabled; original participant assertions unchanged. Focused RED 1/1 failure, GREEN and fresh repeat 1/1.
+- Subsequent independent integrated run passed 280/280, but concurrent user commits required a new stable-HEAD verification.
+- FINAL command: ./gradlew test build --no-configuration-cache --rerun-tasks --console=plain > build/verification-final-head.log 2>&1
+- FINAL result: exit 0; BUILD SUCCESSFUL in 1m 32s; six executed tasks: compileJava, processResources, jar, shadowJar, compileTestJava, test. Raw :shadowJar evidence: build/verification-final-head.log:9. Compilation emitted deprecation/unchecked warnings.
+- FINAL fresh XML: 25 suites, 280 passed, zero failures/errors/skips; all 46 personal-kit tests and combat integration 1/1 passed.
+- Before 2026-10-08T00:06:03Z / after 00:08:11Z: identical HEAD 4682efe30e0738e90174105fadbc9204428b2d36, same branch, clean worktree/index; diff quiet/cached quiet/check returned 0.
+- Parent spot check: same HEAD, clean tree, git diff --check passed and artifact SHA matched. This final record update subsequently changes only the task document, not tested source.
+## Current artifact
+build/libs/FFAUtils-1.3.0-SNAPSHOT.jar
+Descriptor version 1.3.0-SNAPSHOT; 825291 bytes; regenerated 2026-10-08T00:07:01.114664101Z.
+SHA-256: 1f34cb9a2c0c764e44a429bbc343de30a90326a7781c765357ef98be4565dd2b
+471 classes, including personal editor/layout/codec; relocated Gson 221, Hikari 80, FastInv 6.
+## Remaining checks / limitations
+- Native review unavailable: INSPECT blocked native-status-package-binary-missing; lineage_created=false, mutation_performed=false. ASSESS unassessable, explicit unavailable; independent verification completed instead. No native approval claimed.
+- Native offered continuation (unchanged): If GENTLE_PI_SKIP_GENTLE_AI_INSTALL is set, remove or unset it before changing to the installed gentle-pi package directory and running `node scripts/install-gentle-ai.mjs`.
+- Installation was not attempted: outside authorized repository scope.
+- No live Paper/client smoke test. Verify cursor transport, disconnect/world-event rollback, exact layout after reconnect and real server persistence.
+- Global metadata Gson reload not successfully exercised in MockBukkit. Fingerprint stability checked with metadata codec round trip and trailing-empty normalization. MockBukkit exposes 43 slots and can normalize AIR; exact 41-slot API arguments were separately captured.
+- Production SQLite driver availability remains a preexisting external dependency; new testRuntimeOnly driver does not provision production.
+- Preexisting utility relocation mismatch: configuration targets com.github.putindeer, archive contains five me/putindeer classes and zero relocated libs/utils classes. No packaging fix attempted.
+No proven remaining candidate-caused defect; automated verification is not production approval.
+## Recovery / incident history
+Early worker stopped because task document disappeared after successful write/readback; cause unproven. Parent restored from Engram and confirmed same root/branch. No source writes occurred at that stop.
+External staging/commits during first successful final run were confirmed intentional by user; no resets/reverts performed. Final rerun tied evidence to stable committed HEAD.
+## User commit evidence / rollback
+T1 source/lifecycle/codec: 54a0daf, d6c0a2f, 342ff43; tests: 56b3e10, dbc486d, b0a1cfa; JDBC test runtime: 4682efe.
+T2 GUI/application/layout: 5f3bb5f, d6c0a2f, 342ff43; tests: 4604214, 5f22016, dbc486d, b0a1cfa.
+Authorized combat fixture: 5f22016. These user-created commits also contain some unrelated changes; they are evidence, not automatic rollback units.
+Rollback boundary: personal-kit source/tests and additive persistence behavior only; preserve unrelated source/resources, existing stats/global kit files and user commits. No destructive rollback authorized.
 ## Next step
-Run fresh independent ./gradlew test build --no-configuration-cache --rerun-tasks; full test/build closure pending.
+Run live Paper smoke checks and, if authorized, restore native review availability for a separately scoped review candidate. T3 remains open for those checks; automated tests/build/artifact verification complete.
