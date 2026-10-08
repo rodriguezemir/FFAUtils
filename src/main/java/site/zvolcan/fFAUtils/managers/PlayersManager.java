@@ -19,6 +19,11 @@ public final class PlayersManager {
         players.putIfAbsent(player.getUniqueId(), ffaPlayer);
     }
 
+    /** Registers the persistence-loaded profile, rather than creating a second gameplay copy. */
+    public void registerPlayer(@NotNull FFAPlayer profile) {
+        players.put(profile.getUuid(), profile);
+    }
+
     @NotNull
     public FFAPlayer getFFAPlayer(final @NotNull Player player) {
         if (!players.containsKey(player.getUniqueId())) {
