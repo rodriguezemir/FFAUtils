@@ -1,5 +1,7 @@
 package site.zvolcan.fFAUtils.listeners;
 
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Player;
@@ -43,6 +45,10 @@ class CombatDamageIntegrationTest {
 
         // ── Mock FFAUtils plugin ──────────────────────────────────────────
         FFAUtils mockPlugin = mock(FFAUtils.class, withSettings().lenient());
+        FileConfiguration config = new YamlConfiguration();
+        // This test targets combat marking, not the unrelated entry notification.
+        config.set("combat-enter-message", false);
+        when(mockPlugin.getConfig()).thenReturn(config);
 
         // Real CombatLogManager — 200 ticks ≈ 10 seconds, plenty for the test
         combatLogManager = new CombatLogManager(mockPlugin, 200L);
