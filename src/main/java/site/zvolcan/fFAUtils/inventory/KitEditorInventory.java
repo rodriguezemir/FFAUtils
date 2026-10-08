@@ -7,6 +7,8 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import java.util.HashMap;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import site.zvolcan.fFAUtils.managers.KitManager;
@@ -26,8 +28,12 @@ public class KitEditorInventory extends FastInv {
     private static final int NEXT_PAGE_SLOT = 50;
     private static final int EMPTY_PLACEHOLDER_SLOT = 22;
 
+    private final KitManager kitManager;
+    private final Map<Integer, String> displayedKits = new HashMap<>();
+
     public KitEditorInventory(KitManager kitManager, int requestedPage) {
-        super(54, "Kit Editor");
+        super(54, "Your Kit Layouts");
+        this.kitManager = kitManager;
 
         Map<String, Kit> allKits = kitManager.getAllKits();
         List<Map.Entry<String, Kit>> kitList = new ArrayList<>(allKits.entrySet());
@@ -63,6 +69,7 @@ public class KitEditorInventory extends FastInv {
                 meta.lore(lore);
                 item.setItemMeta(meta);
 
+                displayedKits.put(PAGE_START_SLOT + (i - start), name);
                 setItem(PAGE_START_SLOT + (i - start), item, e -> {
                     Player clicker = (Player) e.getWhoClicked();
                     playClick(clicker);
@@ -106,10 +113,27 @@ public class KitEditorInventory extends FastInv {
         });
     }
 
-    /** Counts the non-empty stacks stored in a kit */
+    @Override
+    protected void onOpen(InventoryOpenEvent event) {
+        Player player = (Player) event.getPlayer();
+        displayedKits.forEach((slot, name) -> {
+            ItemStack[] contents = kitManager.getEffectiveContents(player, name);
+            ItemStack item = getInventory().getItem(slot);
+            ItemMeta meta = item.getItemMeta();
+            meta.lore(List.of(text("<gray>" + (contents == null ? 0 : countItems(contents))
+                    + " items in your effective layout</gray>"), text("<yellow>Click to edit your layout</yellow>")));
+            item.setItemMeta(meta);
+        });
+    }
+
+    /** Counts non-empty stacks, including splits in the effective personal layout. */
     static int countItems(Kit kit) {
+        return countItems(kit.getContents());
+    }
+
+    static int countItems(ItemStack[] contents) {
         int count = 0;
-        for (ItemStack item : kit.getContents()) {
+        for (ItemStack item : contents) {
             if (item != null && !item.getType().isAir()) {
                 count++;
             }

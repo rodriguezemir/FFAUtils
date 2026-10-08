@@ -9,6 +9,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 import site.zvolcan.fFAUtils.FFAUtils;
 import site.zvolcan.fFAUtils.managers.*;
+import site.zvolcan.fFAUtils.objects.FFAPlayer;
+import site.zvolcan.fFAUtils.objects.PlayerState;
 
 public class PlayerConnectListener implements Listener {
 
@@ -37,13 +39,14 @@ public class PlayerConnectListener implements Listener {
         if (fto10Manager != null) {
             fto10Manager.handleQuit(player);
         }
-        playersManager.removePlayer(player);
-        statsManager.unloadPlayer(player.getUniqueId());
-        lobbyManager.clearPendingRespawn(player.getUniqueId());
         if (combatLogManager.isInCombat(player.getUniqueId())) {
             combatLogManager.removeFromCombat(player.getUniqueId());
             player.setHealth(0);
         }
+        // Combat death can mutate the shared profile synchronously; save only afterward.
+        statsManager.unloadPlayer(player.getUniqueId());
+        playersManager.removePlayer(player);
+        lobbyManager.clearPendingRespawn(player.getUniqueId());
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -63,8 +66,14 @@ public class PlayerConnectListener implements Listener {
     @EventHandler
     public void joinPlayer(PlayerJoinEvent event) {
         final Player player = event.getPlayer();
-        playersManager.createPlayer(player);
+        playersManager.registerPlayer(profile);
+        final FFAPlayer profile = statsManager.loadPlayer(player.getUniqueId());
         statsManager.loadPlayer(player.getUniqueId());
+        // A failed quit save can retain this profile; only runtime state starts fresh.
+        profile.setState(PlayerState.LOBBY);
+        profile.setKillstreak(0);
+        profile.setLastKit(null);
+        profile.setLastSpawn(null);
         lobbyManager.addLobbyItems(player);
         player.teleport(spawnManager.getLobbySpawn());
         // Warm the MCTiers cache so the spawn gate resolves without a round trip.
