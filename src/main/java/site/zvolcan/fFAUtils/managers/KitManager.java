@@ -9,7 +9,10 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import site.zvolcan.fFAUtils.FFAUtils;
+import site.zvolcan.fFAUtils.objects.FFAPlayer;
 import site.zvolcan.fFAUtils.objects.Kit;
+import site.zvolcan.fFAUtils.objects.KitLayout;
 
 import java.io.File;
 import java.io.FileReader;
@@ -126,11 +129,47 @@ public class KitManager {
         loadAllKits();
     }
 
-    /** Applies a kit to a player, auto-equipping armor pieces from contents */
+    private FFAPlayer profile(Player player) {
+        return ((FFAUtils) plugin).getPlayersManager().getFFAPlayer(player);
+    }
+
+    /** Resolves against the current definition; stale or corrupt overrides are discarded. */
+    public ItemStack[] getEffectiveContents(Player player, String name) {
+        Kit current = getKit(name);
+        FFAPlayer profile = profile(player);
+        ItemStack[] personal = profile.getPersonalKitContents(name);
+        if (current == null) {
+            profile.removePersonalKitContents(name);
+            return null;
+        }
+        if (personal != null) {
+            if (KitLayout.fingerprint(current.getContents()).equals(profile.getPersonalKitFingerprint(name))
+                    && KitLayout.conservesItems(current.getContents(), personal)) return KitLayout.copy(personal);
+            profile.removePersonalKitContents(name);
+        }
+        return KitLayout.copy(current.getContents());
+    }
+
+    /** Saves only a validated personal override, never a shared kit or its file. */
+    public boolean savePersonalLayout(Player player, String name, ItemStack[] contents) {
+        Kit current = getKit(name);
+        if (current == null || !KitLayout.conservesItems(current.getContents(), contents)) return false;
+        profile(player).setPersonalKitContents(name, contents, KitLayout.fingerprint(current.getContents()));
+        return true;
+    }
+
+    public void restoreDefault(Player player, String name) {
+        profile(player).removePersonalKitContents(name);
+    }
+
+    /** Personal layouts are exact; only the legacy default auto-equips armor. */
     public void applyKit(@NotNull Player player, @NotNull Kit kit) {
-        PlayerInventory inv = player.getInventory();
-        inv.setContents(kit.getContents());
-        equipArmorFromInventory(inv);
+        ItemStack[] contents = getEffectiveContents(player, kit.getName());
+        if (contents == null) return;
+        player.getInventory().setContents(contents);
+        if (profile(player).getPersonalKitContents(kit.getName()) == null) {
+            equipArmorFromInventory(player.getInventory());
+        }
     }
 
     private void equipArmorFromInventory(@NotNull PlayerInventory inv) {
