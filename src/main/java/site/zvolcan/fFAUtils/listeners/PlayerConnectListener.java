@@ -66,9 +66,8 @@ public class PlayerConnectListener implements Listener {
     @EventHandler
     public void joinPlayer(PlayerJoinEvent event) {
         final Player player = event.getPlayer();
-        playersManager.registerPlayer(profile);
         final FFAPlayer profile = statsManager.loadPlayer(player.getUniqueId());
-        statsManager.loadPlayer(player.getUniqueId());
+        playersManager.registerPlayer(profile);
         // A failed quit save can retain this profile; only runtime state starts fresh.
         profile.setState(PlayerState.LOBBY);
         profile.setKillstreak(0);
