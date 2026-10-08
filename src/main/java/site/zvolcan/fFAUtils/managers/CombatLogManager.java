@@ -31,6 +31,10 @@ public class CombatLogManager {
         if (wasInCombat)
             return;
 
+        Long time = combatEndTimes.put(playerId, currentTime + (combatTimeoutTicks * 50L));
+        if (time != null)
+            return;
+      
         if (plugin.getConfig().getBoolean("combat-enter-message", true)) {
             plugin.getUtils().message(
                     plugin.getServer().getPlayer(playerId),

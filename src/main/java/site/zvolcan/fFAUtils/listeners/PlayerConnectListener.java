@@ -66,13 +66,14 @@ public class PlayerConnectListener implements Listener {
     @EventHandler
     public void joinPlayer(PlayerJoinEvent event) {
         final Player player = event.getPlayer();
+        playersManager.registerPlayer(profile);
         final FFAPlayer profile = statsManager.loadPlayer(player.getUniqueId());
+        statsManager.loadPlayer(player.getUniqueId());
         // A failed quit save can retain this profile; only runtime state starts fresh.
         profile.setState(PlayerState.LOBBY);
         profile.setKillstreak(0);
         profile.setLastKit(null);
         profile.setLastSpawn(null);
-        playersManager.registerPlayer(profile);
         lobbyManager.addLobbyItems(player);
         player.teleport(spawnManager.getLobbySpawn());
         // Warm the MCTiers cache so the spawn gate resolves without a round trip.
