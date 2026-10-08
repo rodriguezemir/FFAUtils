@@ -4,6 +4,7 @@ import fr.mrmicky.fastinv.FastInv;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import site.zvolcan.fFAUtils.FFAUtils;
@@ -19,16 +20,21 @@ import static site.zvolcan.fFAUtils.inventory.KitEditorInventory.plainText;
 import static site.zvolcan.fFAUtils.inventory.KitEditorInventory.playClick;
 import static site.zvolcan.fFAUtils.inventory.KitEditorInventory.text;
 
-/** Detail view of a single kit with edit, delete and back actions */
+/** Detail view of the viewing player's layout, never shared-definition management. */
 public class KitDetailInventory extends FastInv {
 
     private static final int SUMMARY_SLOT = 13;
     private static final int EDIT_SLOT = 11;
-    private static final int DELETE_SLOT = 15;
+    private static final int RESTORE_SLOT = 15;
     private static final int BACK_SLOT = 22;
 
+    private final KitManager kitManager;
+    private final String kitName;
+
     public KitDetailInventory(KitManager kitManager, String kitName, int returnPage) {
-        super(27, "Kit: " + kitName);
+        super(27, "Your kit: " + kitName);
+        this.kitManager = kitManager;
+        this.kitName = kitName;
 
         Kit kit = kitManager.getKit(kitName);
 
@@ -43,9 +49,9 @@ public class KitDetailInventory extends FastInv {
 
         ItemStack edit = new ItemStack(Material.WRITABLE_BOOK);
         ItemMeta editMeta = edit.getItemMeta();
-        editMeta.displayName(text("<green>Edit contents</green>"));
+        editMeta.displayName(text("<green>Edit your layout</green>"));
         List<Component> editLore = new ArrayList<>();
-        editLore.add(text("<gray>Edit this kit using your own inventory</gray>"));
+        editLore.add(text("<gray>Rearrange your items; shared kit stays unchanged</gray>"));
         editMeta.lore(editLore);
         edit.setItemMeta(editMeta);
         setItem(EDIT_SLOT, edit, e -> {
@@ -60,30 +66,23 @@ public class KitDetailInventory extends FastInv {
             KitEditContentsInventory.open(FFAUtils.getInstance(), kitManager, clicker, kitName);
         });
 
-        ItemStack delete = new ItemStack(Material.TNT);
-        ItemMeta deleteMeta = delete.getItemMeta();
-        deleteMeta.displayName(text("<red>Delete kit</red>"));
-        List<Component> deleteLore = new ArrayList<>();
-        deleteLore.add(text("<gray>Shift-click to confirm deletion</gray>"));
-        deleteMeta.lore(deleteLore);
-        delete.setItemMeta(deleteMeta);
-        setItem(DELETE_SLOT, delete, e -> {
+        ItemStack restore = new ItemStack(Material.TNT);
+        ItemMeta restoreMeta = restore.getItemMeta();
+        restoreMeta.displayName(text("<red>Restore default</red>"));
+        restoreMeta.lore(List.of(text("<gray>Shift-click to remove only your saved layout</gray>")));
+        restore.setItemMeta(restoreMeta);
+        setItem(RESTORE_SLOT, restore, e -> {
             Player clicker = (Player) e.getWhoClicked();
-            // A plain click must never destroy a kit - only a shift-click confirms.
+            // Confirm removal of this player's override, not the shared definition.
             if (!e.isShiftClick()) {
                 FFAUtils.getInstance().getUtils().message(clicker, Sounds.ERROR_SOUND,
-                        "<yellow>Shift-click to confirm deleting this kit.</yellow>");
+                        "<yellow>Shift-click to restore your default layout.</yellow>");
                 return;
             }
             playClick(clicker);
-            if (!kitManager.deleteKit(kitName)) {
-                FFAUtils.getInstance().getUtils().message(clicker, Sounds.ERROR_SOUND,
-                        "<red>This kit no longer exists.</red>");
-                new KitEditorInventory(kitManager, returnPage).open(clicker);
-                return;
-            }
+            kitManager.restoreDefault(clicker, kitName);
             FFAUtils.getInstance().getUtils().message(clicker, Sounds.SUCCESS_SOUND,
-                    "<green>Kit <white>" + kitName + "</white> deleted.</green>");
+                    "<green>Your default layout for <white>" + kitName + "</white> restored.</green>");
             new KitEditorInventory(kitManager, returnPage).open(clicker);
         });
 
@@ -96,5 +95,16 @@ public class KitDetailInventory extends FastInv {
             playClick(clicker);
             new KitEditorInventory(kitManager, returnPage).open(clicker);
         });
+    }
+
+    @Override
+    protected void onOpen(InventoryOpenEvent event) {
+        Player player = (Player) event.getPlayer();
+        ItemStack[] contents = kitManager.getEffectiveContents(player, kitName);
+        ItemStack summary = getInventory().getItem(SUMMARY_SLOT);
+        ItemMeta meta = summary.getItemMeta();
+        meta.lore(List.of(text("<gray>" + (contents == null ? 0 : KitEditorInventory.countItems(contents))
+                + " items in your effective layout</gray>")));
+        summary.setItemMeta(meta);
     }
 }
