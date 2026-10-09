@@ -7,8 +7,6 @@ FFAUtils is an open-source **Minecraft PvP and free-for-all (FFA) plugin for Pap
 [![Java 21](https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white)](https://adoptium.net/)
 [![License MIT](https://img.shields.io/badge/License-MIT-2ea44f.svg)](LICENSE)
 
-**Repository tags:** `minecraft-plugin` `paper-plugin` `minecraft-pvp` `ffa-server` `pvp-arena` `minecraft-kits` `placeholderapi` `java`
-
 ![Build](https://github.com/rodriguezemir/ffautils/actions/workflows/build.yml/badge.svg)
 
 ---
@@ -28,11 +26,9 @@ FFAUtils is an open-source **Minecraft PvP and free-for-all (FFA) plugin for Pap
 
 | | |
 |---|---|
-| Server | Paper 1.21.4 (uses the Paper plugin descriptor and Brigadier command API) |
+| Server | Paper 1.21+ |
 | Java | 21 |
 | Optional | [PlaceholderAPI](https://www.spigotmc.org/resources/6245/), [packetevents](https://github.com/retrooper/packetevents) |
-
-Both optional dependencies are soft — the plugin loads fine without them, and simply skips registering placeholders when PlaceholderAPI is absent.
 
 ## Installation
 
