@@ -21,9 +21,12 @@ public class PlayerConnectListener implements Listener {
     private final StatsManager statsManager;
     private final TierManager tierManager;
     private final Fto10Manager fto10Manager;
+    private final FFAUtils plugin;
+    private final UpdateCheckerManager updateCheckerManager;
 
     public PlayerConnectListener(@NotNull FFAUtils plugin, LobbyManager lobbyManager, PlayersManager playersManager,
             SpawnManager spawnManager, StatsManager statsManager) {
+        this.plugin = plugin;
         this.lobbyManager = lobbyManager;
         this.playersManager = playersManager;
         this.combatLogManager = plugin.getCombatLogManager();
@@ -31,6 +34,7 @@ public class PlayerConnectListener implements Listener {
         this.statsManager = statsManager;
         this.tierManager = plugin.getTierManager();
         this.fto10Manager = plugin.getFto10Manager();
+        this.updateCheckerManager = plugin.getUpdateCheckerManager();
     }
 
     @EventHandler
@@ -79,5 +83,27 @@ public class PlayerConnectListener implements Listener {
         if (tierManager != null && tierManager.isPrefetchOnJoin()) {
             tierManager.prefetch(player.getUniqueId(), player.getName());
         }
+        notifyUpdateAvailable(player);
+    }
+
+    /**
+     * One line for staff when the startup check found a newer release.
+     *
+     * <p>
+     * Skipped without a release URL: the notice is a clickable link, and the
+     * console warning already covers a payload that has none.</p>
+     */
+    private void notifyUpdateAvailable(@NotNull Player player) {
+        if (updateCheckerManager == null || !updateCheckerManager.notifyPlayers()
+                || !player.hasPermission("ffautils.update-notify")) {
+            return;
+        }
+        updateCheckerManager.newerRelease()
+                .filter(release -> release.url() != null)
+                .ifPresent(release -> plugin.getUtils().message(player, false,
+                        MessagesManager.getInstance().getMessage("update-available",
+                                "{latest}", release.version(),
+                                "{current}", plugin.getDescription().getVersion(),
+                                "{url}", release.url())));
     }
 }

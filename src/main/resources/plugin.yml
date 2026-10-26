@@ -51,6 +51,9 @@ permissions:
   ffautils.commands.tiers:
     description: Allows managing the MCTiers spawn gate with /tiers
     default: op
+  ffautils.update-notify:
+    description: Receives a chat notice when a newer FFAUtils release exists
+    default: op
   ffautils.tiers.bypass:
     description: Allows entering tier-restricted spawns regardless of MCTiers rank
     default: op

@@ -53,6 +53,8 @@ public class FFAUtils extends JavaPlugin {
         private TierManager tierManager;
         @Getter
         private Fto10Manager fto10Manager;
+        @Getter
+        private UpdateCheckerManager updateCheckerManager;
         @Override
         public void onEnable() {
                 instance = this;
@@ -153,6 +155,14 @@ public class FFAUtils extends JavaPlugin {
                 messagesManager.addDefault("fto10-command-blocked",
                                 "<red>No puedes salir o cambiar tu kit durante un Fto10. Usa <white>/fto10 leave</white> con el nombre de tu rival.");
                 TierManager.registerMessageDefaults(messagesManager);
+                messagesManager.addDefault("update-available",
+                                "<yellow>A new FFAUtils release is available: <white>{latest}</white> (running <gray>{current}</gray>). <click:open_url:'{url}'><aqua>Download</aqua></click>");
+                // Never touches the main thread: the request runs on its own daemon.
+                updateCheckerManager = new UpdateCheckerManager(this);
+                if (getConfig().getBoolean("update-check.enabled", true)) {
+                        updateCheckerManager.checkAsync();
+                }
+                sendConsole("§8[§bFFAUtils§8] §a✔ §7Loading UpdateChecker");
                 tierManager = new TierManager(this);
                 sendConsole("§8[§bFFAUtils§8] §a✔ §7Loading TierManager");
                 if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
@@ -199,6 +209,9 @@ public class FFAUtils extends JavaPlugin {
                 statsManager.close();
                 if (tierManager != null) {
                         tierManager.shutdown();
+                }
+                if (updateCheckerManager != null) {
+                        updateCheckerManager.shutdown();
                 }
                 messagesManager.saveMessages();
         }

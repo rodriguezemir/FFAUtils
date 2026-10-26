@@ -94,3 +94,20 @@ tiers:
 
 # Whether to send the combat-enter message when a player enters combat
 combat-enter-message: true
+
+# Update checker. Asks the GitHub API for the latest release on startup so the
+# server owner knows when a newer build exists. The request runs on its own
+# daemon thread with a timeout, and every failure is silent: it never blocks a
+# tick and never stops the server.
+update-check:
+  enabled: true
+
+  # GitHub's "latest release" endpoint. Point it at a mirror or a fork if you
+  # need to; the payload must contain "tag_name" and "html_url".
+  api-url: "https://api.github.com/repos/rodriguezemir/ffautils/releases/latest"
+
+  # Connect and request timeout. Kept short: nothing waits for this result.
+  timeout-seconds: 5
+
+  # Also tell players holding ffautils.update-notify when they join.
+  notify-players: true
