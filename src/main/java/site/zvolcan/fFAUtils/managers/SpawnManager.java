@@ -329,7 +329,7 @@ public class SpawnManager {
     public Location getLobbySpawn() {
         Location lobbySpawn = getSpawn("lobby");
         if (lobbySpawn == null) {
-            lobbySpawn = plugin.getServer().getWorlds().getFirst().getSpawnLocation();
+            lobbySpawn = plugin.getServer().getWorlds().get(0).getSpawnLocation();
         }
         return lobbySpawn;
     }

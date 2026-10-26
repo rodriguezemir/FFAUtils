@@ -1,10 +1,10 @@
 package site.zvolcan.fFAUtils.managers;
 
-import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
+import org.bukkit.command.PluginCommand;
 import site.zvolcan.fFAUtils.FFAPlaceholders;
 import site.zvolcan.fFAUtils.FFAUtils;
 import site.zvolcan.fFAUtils.commands.*;
-import site.zvolcan.fFAUtils.commands.abs.CommandExecutor;
+import site.zvolcan.fFAUtils.commands.abs.FFACommand;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +39,7 @@ public final class CommandManager {
 
     public void registerCommands() {
         // TODO - Agregar permisos a los comandos
-        final List<CommandExecutor> list = new ArrayList<>();
+        final List<FFACommand> list = new ArrayList<>();
         list.add(new KitCommand(plugin, kitManager));
         list.add(new LoadMeCommand(plugin, kitManager, spawnManager, playersManager));
         list.add(new SpawnCommand(spawnManager, lobbyManager, playersManager));
@@ -52,11 +52,14 @@ public final class CommandManager {
         list.add(new TierCommand(plugin, plugin.getTierManager()));
         list.add(new Fto10Command(plugin, fto10Manager));
 
-        plugin.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, (cmd) -> {
-            for (CommandExecutor executor : list) {
-                cmd.registrar().register(executor.execute());
+        for (FFACommand command : list) {
+            PluginCommand pluginCommand = plugin.getCommand(command.name());
+            if (pluginCommand == null) {
+                throw new IllegalStateException("Command not declared in plugin.yml: " + command.name());
             }
-        });
+            pluginCommand.setExecutor(command);
+            pluginCommand.setTabCompleter(command);
+        }
     }
 
 }

@@ -4,12 +4,13 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.*;
-import org.mockbukkit.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.MockBukkit;
+import site.zvolcan.fFAUtils.support.MockBukkit18ServerMock;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class KitLayoutTest {
-    @BeforeEach void setUp() { MockBukkit.mock(); }
+    @BeforeEach void setUp() { MockBukkit.mock(new MockBukkit18ServerMock()); }
     @AfterEach void tearDown() { MockBukkit.unmock(); }
 
     @Test void splitAndMerge_preserveTotalsIgnoringNullAndAir() {

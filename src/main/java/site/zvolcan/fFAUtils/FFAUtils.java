@@ -1,7 +1,7 @@
 package site.zvolcan.fFAUtils;
 
 import lombok.Getter;
-import me.putindeer.api.util.PluginUtils;
+import site.zvolcan.fFAUtils.util.PluginUtils;
 
 import java.io.File;
 

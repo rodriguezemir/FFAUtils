@@ -92,7 +92,7 @@ public class PlayerDeathListener implements Listener {
         if (player.getKiller() != null) {
             final Player killer = player.getKiller();
             double healthBefore = killer.getHealth();
-            double maxHealth = killer.getAttribute(Attribute.MAX_HEALTH).getValue();
+            double maxHealth = killer.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
             killer.setHealth(maxHealth);
             double healed = maxHealth - healthBefore;
             killer.sendActionBar(MiniMessage.miniMessage().deserialize(

@@ -6,6 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.Test;
 import site.zvolcan.fFAUtils.objects.Kit;
+import site.zvolcan.fFAUtils.support.MockBukkit18ServerMock;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -26,8 +27,8 @@ class KitEditorInventoryTest {
 
     @Test
     void openingList_countsTheViewingPlayersEffectiveSplitStacks() {
-        var server = org.mockbukkit.mockbukkit.MockBukkit.mock();
-        var registrar = org.mockbukkit.mockbukkit.MockBukkit.createMockPlugin();
+        var server = be.seeseemelk.mockbukkit.MockBukkit.mock(new MockBukkit18ServerMock());
+        var registrar = be.seeseemelk.mockbukkit.MockBukkit.createMockPlugin();
         try {
             fr.mrmicky.fastinv.FastInvManager.register(registrar);
             var manager = mock(site.zvolcan.fFAUtils.managers.KitManager.class);
@@ -48,10 +49,10 @@ class KitEditorInventoryTest {
             first.closeInventory();
             list.open(second);
             assertEquals(KitEditorInventory.text("<gray>1 items in your effective layout</gray>"),
-                    list.getInventory().getItem(0).getItemMeta().lore().getFirst());
+                    list.getInventory().getItem(0).getItemMeta().lore().get(0));
         } finally {
             server.getPluginManager().callEvent(new org.bukkit.event.server.PluginDisableEvent(registrar));
-            org.mockbukkit.mockbukkit.MockBukkit.unmock();
+            be.seeseemelk.mockbukkit.MockBukkit.unmock();
         }
     }
 

@@ -1,18 +1,19 @@
 package site.zvolcan.fFAUtils.inventory;
 
 import fr.mrmicky.fastinv.FastInvManager;
-import me.putindeer.api.util.PluginUtils;
+import site.zvolcan.fFAUtils.util.PluginUtils;
 import org.bukkit.Material;
 import org.bukkit.event.inventory.*;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
-import org.mockbukkit.mockbukkit.MockBukkit;
-import org.mockbukkit.mockbukkit.entity.PlayerMock;
+import be.seeseemelk.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import site.zvolcan.fFAUtils.FFAUtils;
 import site.zvolcan.fFAUtils.managers.*;
 import site.zvolcan.fFAUtils.objects.Kit;
+import site.zvolcan.fFAUtils.support.MockBukkit18ServerMock;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,7 +30,7 @@ class KitDetailInventoryTest {
     org.bukkit.plugin.Plugin registrar;
 
     @BeforeEach void setUp() {
-        var server = MockBukkit.mock();
+        var server = MockBukkit.mock(new MockBukkit18ServerMock());
         player = server.addPlayer();
         var plugin = mock(FFAUtils.class);
         when(plugin.getDataFolder()).thenReturn(directory.toFile());

@@ -1,15 +1,11 @@
 package site.zvolcan.fFAUtils.commands;
 
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.tree.LiteralCommandNode;
-import io.papermc.paper.command.brigadier.CommandSourceStack;
-import io.papermc.paper.command.brigadier.Commands;
 import org.bukkit.Location;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import site.zvolcan.fFAUtils.FFAUtils;
-import site.zvolcan.fFAUtils.commands.abs.CommandExecutor;
+import site.zvolcan.fFAUtils.commands.abs.FFACommand;
 import site.zvolcan.fFAUtils.managers.KitManager;
 import site.zvolcan.fFAUtils.managers.MessagesManager;
 import site.zvolcan.fFAUtils.managers.RegionManager;
@@ -18,10 +14,13 @@ import site.zvolcan.fFAUtils.objects.Region;
 import site.zvolcan.fFAUtils.objects.Sounds;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public final class RegionCommand implements CommandExecutor {
+public final class RegionCommand implements FFACommand {
+
+    private static final String[] ACTIONS = {"pos1", "pos2", "delete", "info"};
 
     private final FFAUtils plugin;
     private final KitManager kitManager;
@@ -37,35 +36,35 @@ public final class RegionCommand implements CommandExecutor {
     private record PendingCorner(String kitName, Location location) {}
 
     @Override
-    public LiteralCommandNode<CommandSourceStack> execute() {
-        LiteralArgumentBuilder<CommandSourceStack> literal = Commands.literal("kitregion");
-        literal.requires(ctx -> ctx.getSender().hasPermission("ffautils.commands.kitregion"));
+    public String name() {
+        return "kitregion";
+    }
 
-        literal.then(Commands.argument("kit", StringArgumentType.word())
-            .then(Commands.literal("pos1").executes(ctx ->
-                    setCorner(ctx.getSource(), StringArgumentType.getString(ctx, "kit"), 1)))
-            .then(Commands.literal("pos2").executes(ctx ->
-                    setCorner(ctx.getSource(), StringArgumentType.getString(ctx, "kit"), 2)))
-            .then(Commands.literal("delete").executes(ctx -> {
-                CommandSender sender = ctx.getSource().getSender();
-                String kitName = StringArgumentType.getString(ctx, "kit");
+    /** {@code /kitregion <kit> <pos1|pos2|delete|info>}: all four actions need the kit name. */
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length != 2) {
+            return true;
+        }
+        String kitName = args[0];
+        switch (args[1]) {
+            case "pos1" -> setCorner(sender, kitName, 1);
+            case "pos2" -> setCorner(sender, kitName, 2);
+            case "delete" -> {
                 if (!regionManager.deleteRegion(kitName)) {
                     message(sender, Sounds.ERROR_SOUND,
                             messages().getMessage("region-not-found", "{kit}", kitName));
-                    return 1;
+                    return true;
                 }
                 message(sender, Sounds.SUCCESS_SOUND,
                         messages().getMessage("region-deleted", "{kit}", kitName));
-                return 1;
-            }))
-            .then(Commands.literal("info").executes(ctx -> {
-                CommandSender sender = ctx.getSource().getSender();
-                String kitName = StringArgumentType.getString(ctx, "kit");
+            }
+            case "info" -> {
                 Region region = regionManager.getRegion(kitName);
                 if (region == null) {
                     message(sender, Sounds.ERROR_SOUND,
                             messages().getMessage("region-not-found", "{kit}", kitName));
-                    return 1;
+                    return true;
                 }
                 message(sender, null, messages().getMessage(
                         "region-info",
@@ -74,15 +73,24 @@ public final class RegionCommand implements CommandExecutor {
                         "{min}", region.getMinX() + ", " + region.getMinY() + ", " + region.getMinZ(),
                         "{max}", region.getMaxX() + ", " + region.getMaxY() + ", " + region.getMaxZ()
                 ));
-                return 1;
-            }))
-        );
-
-        return literal.build();
+            }
+            default -> {
+                // Not an action of this tree.
+            }
+        }
+        return true;
     }
 
-    private int setCorner(CommandSourceStack source, String kitName, int corner) {
-        CommandSender sender = source.getSender();
+    /** The action literals sit below the kit argument; the kit name itself had no {@code suggests}. */
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (args.length == 2) {
+            return FFACommand.matching(args[1], ACTIONS);
+        }
+        return List.of();
+    }
+
+    private int setCorner(CommandSender sender, String kitName, int corner) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage(messages().getMessage("only-players-execute"));
             return 1;

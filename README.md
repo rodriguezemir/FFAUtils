@@ -1,10 +1,10 @@
 # FFAUtils: Minecraft Paper PvP and FFA Plugin
 
-FFAUtils is an open-source **Minecraft PvP and free-for-all (FFA) plugin for Paper 1.21.4**. It provides configurable kits, arenas and spawns, combat logging, player statistics, tier-gated PvP access, and first-to-ten (`/fto10`) duels for competitive Minecraft servers.
+FFAUtils is an open-source **Minecraft PvP and free-for-all (FFA) plugin for Paper 1.18.2**. It provides configurable kits, arenas and spawns, combat logging, player statistics, tier-gated PvP access, and first-to-ten (`/fto10`) duels for competitive Minecraft servers.
 
-[![Minecraft 1.21.4](https://img.shields.io/badge/Minecraft-1.21.4-62B47A?logo=minecraft&logoColor=white)](https://www.minecraft.net/)
+[![Minecraft 1.18.2](https://img.shields.io/badge/Minecraft-1.18.2-62B47A?logo=minecraft&logoColor=white)](https://www.minecraft.net/)
 [![Paper](https://img.shields.io/badge/Server-Paper-ED8936)](https://papermc.io/)
-[![Java 21](https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white)](https://adoptium.net/)
+[![Java 17+](https://img.shields.io/badge/Java-17%2B-007396?logo=openjdk&logoColor=white)](https://adoptium.net/)
 [![License MIT](https://img.shields.io/badge/License-MIT-2ea44f.svg)](LICENSE)
 
 ![Build](https://github.com/rodriguezemir/ffautils/actions/workflows/build.yml/badge.svg)
@@ -26,8 +26,8 @@ FFAUtils is an open-source **Minecraft PvP and free-for-all (FFA) plugin for Pap
 
 | | |
 |---|---|
-| Server | Paper 1.21+ |
-| Java | 21 |
+| Server | Paper 1.18.2 |
+| Java | 17 or newer (the plugin is Java 17 bytecode, built with JDK 21) |
 | Optional | [PlaceholderAPI](https://www.spigotmc.org/resources/6245/), [packetevents](https://github.com/retrooper/packetevents) |
 
 ## Installation
@@ -174,8 +174,10 @@ Every lookup runs on a dedicated thread pool; nothing HTTP-related touches the m
 ```sh
 ./gradlew shadowJar   # fat JAR into build/libs/
 ./gradlew test        # run the test suite
-./gradlew runServer   # Paper 1.21.4 test server with the plugin deployed
+./gradlew runServer   # Paper 1.18.2 test server with the plugin deployed
 ```
+
+The plugin is compiled against `io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT` with `options.release = 17`, so one JAR runs on any Paper 1.18.x server on Java 17 or newer.
 
 Gradle's configuration cache is enabled. If you change `build.gradle.kts`, run with `--no-configuration-cache` or clear `.gradle/configuration-cache/`.
 

@@ -39,7 +39,7 @@ class FFAPlayerTest {
 
     @Test
     void personalLayouts_cloneMutableItemsAndMetadataOnEveryBoundary() {
-        org.mockbukkit.mockbukkit.MockBukkit.mock();
+        be.seeseemelk.mockbukkit.MockBukkit.mock(new site.zvolcan.fFAUtils.support.MockBukkit18ServerMock());
         try {
             FFAPlayer first = new FFAPlayer(UUID.randomUUID());
             FFAPlayer second = new FFAPlayer(UUID.randomUUID());
@@ -64,7 +64,7 @@ class FFAPlayerTest {
             assertNull(first.getPersonalKitFingerprint("kit"));
             assertEquals("v1", second.getPersonalKitFingerprint("kit"));
         } finally {
-            org.mockbukkit.mockbukkit.MockBukkit.unmock();
+            be.seeseemelk.mockbukkit.MockBukkit.unmock();
         }
     }
 

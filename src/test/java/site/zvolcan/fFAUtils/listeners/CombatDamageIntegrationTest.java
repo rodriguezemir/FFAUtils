@@ -2,16 +2,14 @@ package site.zvolcan.fFAUtils.listeners;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.damage.DamageSource;
-import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockbukkit.mockbukkit.MockBukkit;
-import org.mockbukkit.mockbukkit.ServerMock;
+import be.seeseemelk.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.ServerMock;
 import site.zvolcan.fFAUtils.FFAUtils;
 import site.zvolcan.fFAUtils.managers.*;
 
@@ -65,11 +63,11 @@ class CombatDamageIntegrationTest {
         when(mockPlugin.getServer()).thenReturn(server);
 
         // PluginUtils — lenient, not exercised by our test path
-        me.putindeer.api.util.PluginUtils utils;
+        site.zvolcan.fFAUtils.util.PluginUtils utils;
         try {
-            Class<me.putindeer.api.util.PluginUtils> puClass =
-                    (Class<me.putindeer.api.util.PluginUtils>)
-                            Class.forName("me.putindeer.api.util.PluginUtils");
+            Class<site.zvolcan.fFAUtils.util.PluginUtils> puClass =
+                    (Class<site.zvolcan.fFAUtils.util.PluginUtils>)
+                            Class.forName("site.zvolcan.fFAUtils.util.PluginUtils");
             utils = mock(puClass, withSettings().lenient().withoutAnnotations());
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("Cannot load PluginUtils", e);
@@ -100,13 +98,9 @@ class CombatDamageIntegrationTest {
         Player player2 = server.addPlayer();
 
         // When — dispatch damage directly to the listener
-        // The 5-param constructor is marked for removal in Paper API 1.21.11+
-        // but still functional. Suppress the warning since this is the only way to
-        // construct the event without DamageSource in integration tests.
         EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(
                 player1, player2,
                 EntityDamageEvent.DamageCause.ENTITY_ATTACK,
-                DamageSource.builder(DamageType.PLAYER_ATTACK).build(),
                 5.0
         );
         listener.onEntityDamageByEntity(event);

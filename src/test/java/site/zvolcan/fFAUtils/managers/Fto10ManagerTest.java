@@ -2,8 +2,6 @@ package site.zvolcan.fFAUtils.managers;
 
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.damage.DamageSource;
-import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -11,8 +9,8 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockbukkit.mockbukkit.MockBukkit;
-import org.mockbukkit.mockbukkit.ServerMock;
+import be.seeseemelk.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.ServerMock;
 import site.zvolcan.fFAUtils.FFAUtils;
 import site.zvolcan.fFAUtils.objects.FFAPlayer;
 import site.zvolcan.fFAUtils.objects.Kit;
@@ -144,7 +142,6 @@ class Fto10ManagerTest {
     @SuppressWarnings("deprecation")
     private EntityDamageByEntityEvent damage(Player damaged, Player damager) {
         return new EntityDamageByEntityEvent(damager, damaged,
-                EntityDamageEvent.DamageCause.ENTITY_ATTACK,
-                DamageSource.builder(DamageType.PLAYER_ATTACK).build(), 1.0);
+                EntityDamageEvent.DamageCause.ENTITY_ATTACK, 1.0);
     }
 }

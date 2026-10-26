@@ -10,12 +10,13 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockbukkit.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.MockBukkit;
 import site.zvolcan.fFAUtils.FFAUtils;
 import site.zvolcan.fFAUtils.listeners.PlayerConnectListener;
 import site.zvolcan.fFAUtils.objects.FFAPlayer;
 import site.zvolcan.fFAUtils.objects.Kit;
 import site.zvolcan.fFAUtils.objects.PlayerState;
+import site.zvolcan.fFAUtils.support.MockBukkit18ServerMock;
 
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -33,7 +34,7 @@ class StatsManagerTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        MockBukkit.mock();
+        MockBukkit.mock(new MockBukkit18ServerMock());
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:sqlite:" + directory.resolve("stats.db"));
         config.setMaximumPoolSize(1);

@@ -6,7 +6,8 @@ import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockbukkit.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.MockBukkit;
+import site.zvolcan.fFAUtils.support.MockBukkit18ServerMock;
 
 import java.util.Arrays;
 
@@ -16,7 +17,7 @@ class PlayerKitContentsCodecTest {
     private final PlayerKitContentsCodec codec = new PlayerKitContentsCodec();
 
     @BeforeEach
-    void setUp() { MockBukkit.mock(); }
+    void setUp() { MockBukkit.mock(new MockBukkit18ServerMock()); }
 
     @AfterEach
     void tearDown() { MockBukkit.unmock(); }

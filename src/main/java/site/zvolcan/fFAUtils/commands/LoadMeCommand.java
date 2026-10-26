@@ -1,15 +1,11 @@
 package site.zvolcan.fFAUtils.commands;
 
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.tree.LiteralCommandNode;
-import io.papermc.paper.command.brigadier.CommandSourceStack;
-import io.papermc.paper.command.brigadier.Commands;
 import org.bukkit.Location;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import site.zvolcan.fFAUtils.FFAUtils;
-import site.zvolcan.fFAUtils.commands.abs.CommandExecutor;
+import site.zvolcan.fFAUtils.commands.abs.FFACommand;
 import site.zvolcan.fFAUtils.managers.KitManager;
 import site.zvolcan.fFAUtils.managers.MessagesManager;
 import site.zvolcan.fFAUtils.managers.PlayersManager;
@@ -22,7 +18,7 @@ import site.zvolcan.fFAUtils.objects.Sounds;
 
 import java.util.List;
 
-public final class LoadMeCommand implements CommandExecutor {
+public final class LoadMeCommand implements FFACommand {
 
     private final FFAUtils plugin;
     private final KitManager kitManager;
@@ -38,88 +34,87 @@ public final class LoadMeCommand implements CommandExecutor {
     }
 
     @Override
-    public LiteralCommandNode<CommandSourceStack> execute() {
-        LiteralArgumentBuilder<CommandSourceStack> literal = Commands.literal("loadme");
+    public String name() {
+        return "loadme";
+    }
 
-        literal.then(
-                Commands.argument("kit", StringArgumentType.word())
-                        .then(Commands.argument("spawn", StringArgumentType.word())
-                                .executes(ctx -> {
-                                    CommandSourceStack source = ctx.getSource();
-                                    CommandSender sender = source.getSender();
-                                    if (!(sender instanceof Player player)) {
-                                        sender.sendMessage(MessagesManager.getInstance()
-                                                .getMessage("only-players-execute"));
-                                        return 1;
-                                    }
-                                    FFAPlayer ffaPlayer = playersManager.getFFAPlayer(player);
-                                    // if (ffaPlayer.getState() != PlayerState.LOBBY) {
-                                    // plugin.getUtils().message(player, Sounds.ERROR_SOUND,
-                                    // MessagesManager.getInstance().getMessage(
-                                    // "player-already-in-ffa"));
-                                    // }
+    /** {@code /loadme <kit> <spawn>}: both arguments were required by the tree. */
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length != 2) {
+            return true;
+        }
 
-                                    String kitName = StringArgumentType.getString(ctx, "kit");
-                                    String spawnName = StringArgumentType.getString(ctx, "spawn");
-                                    Kit kit = kitManager.getKit(kitName);
-                                    if (kit == null) {
-                                        plugin.getUtils().message(player, Sounds.ERROR_SOUND,
-                                                MessagesManager.getInstance().getMessage(
-                                                        "kit-not-found", "{name}", kitName));
-                                        return 1;
-                                    }
-                                    final Location spawn = spawnManager.getSpawn(spawnName);
-                                    if (spawn == null) {
-                                        plugin.getUtils().message(player, Sounds.ERROR_SOUND,
-                                                MessagesManager.getInstance().getMessage(
-                                                        "spawn-not-found", "{spawn}", spawnName));
-                                        return 1;
-                                    }
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(MessagesManager.getInstance()
+                    .getMessage("only-players-execute"));
+            return true;
+        }
+        FFAPlayer ffaPlayer = playersManager.getFFAPlayer(player);
+        // if (ffaPlayer.getState() != PlayerState.LOBBY) {
+        // plugin.getUtils().message(player, Sounds.ERROR_SOUND,
+        // MessagesManager.getInstance().getMessage(
+        // "player-already-in-ffa"));
+        // }
 
-                                    // Kit-list validation: check spawn's allowed-kits restriction
-                                    List<String> allowedKits = spawnManager.getAllowedKits(spawnName);
-                                    if (!SpawnManager.isKitAllowedAtSpawn(allowedKits, kitName)) {
-                                        plugin.getUtils().message(player, Sounds.ERROR_SOUND,
-                                                MessagesManager.getInstance().getMessage("kit-not-allowed-for-spawn"));
-                                        return 1;
-                                    }
+        String kitName = args[0];
+        String spawnName = args[1];
+        Kit kit = kitManager.getKit(kitName);
+        if (kit == null) {
+            plugin.getUtils().message(player, Sounds.ERROR_SOUND,
+                    MessagesManager.getInstance().getMessage(
+                            "kit-not-found", "{name}", kitName));
+            return true;
+        }
+        final Location spawn = spawnManager.getSpawn(spawnName);
+        if (spawn == null) {
+            plugin.getUtils().message(player, Sounds.ERROR_SOUND,
+                    MessagesManager.getInstance().getMessage(
+                            "spawn-not-found", "{spawn}", spawnName));
+            return true;
+        }
 
-                                    String spawnPermission = spawnManager.getConfiguredSpawnPermission(spawnName);
-                                    if (plugin.getConfig().getBoolean("spawn-permissions.enabled", false)
-                                            && spawnPermission != null
-                                            && !player.hasPermission(spawnPermission)) {
-                                        plugin.getUtils().message(player, Sounds.ERROR_SOUND,
-                                                MessagesManager.getInstance().getMessage("spawn-no-permission"));
-                                        return 1;
-                                    }
+        // Kit-list validation: check spawn's allowed-kits restriction
+        List<String> allowedKits = spawnManager.getAllowedKits(spawnName);
+        if (!SpawnManager.isKitAllowedAtSpawn(allowedKits, kitName)) {
+            plugin.getUtils().message(player, Sounds.ERROR_SOUND,
+                    MessagesManager.getInstance().getMessage("kit-not-allowed-for-spawn"));
+            return true;
+        }
 
-                                    // MCTiers gate: the spawn may require a minimum tier.
-                                    // Resolved from cache when possible, otherwise the
-                                    // callback runs once the API lookup completes.
-                                    TierManager tierManager = plugin.getTierManager();
-                                    if (tierManager == null) {
-                                        enterSpawn(player, ffaPlayer, kit, spawn);
-                                        return 1;
-                                    }
-                                    if (!tierManager.isResolvedImmediately(player, spawnName)) {
-                                        plugin.getUtils().message(player, false,
-                                                MessagesManager.getInstance().getMessage("tier-checking"));
-                                    }
-                                    tierManager.checkAccess(player, spawnName, result -> {
-                                        if (!result.isAllowed()) {
-                                            sendTierDenial(player, result);
-                                            return;
-                                        }
-                                        // The lookup may have taken a moment — they could be gone.
-                                        if (!player.isOnline()) {
-                                            return;
-                                        }
-                                        enterSpawn(player, ffaPlayer, kit, spawn);
-                                    });
-                                    return 1;
-                                })));
+        String spawnPermission = spawnManager.getConfiguredSpawnPermission(spawnName);
+        if (plugin.getConfig().getBoolean("spawn-permissions.enabled", false)
+                && spawnPermission != null
+                && !player.hasPermission(spawnPermission)) {
+            plugin.getUtils().message(player, Sounds.ERROR_SOUND,
+                    MessagesManager.getInstance().getMessage("spawn-no-permission"));
+            return true;
+        }
 
-        return literal.build();
+        // MCTiers gate: the spawn may require a minimum tier.
+        // Resolved from cache when possible, otherwise the
+        // callback runs once the API lookup completes.
+        TierManager tierManager = plugin.getTierManager();
+        if (tierManager == null) {
+            enterSpawn(player, ffaPlayer, kit, spawn);
+            return true;
+        }
+        if (!tierManager.isResolvedImmediately(player, spawnName)) {
+            plugin.getUtils().message(player, false,
+                    MessagesManager.getInstance().getMessage("tier-checking"));
+        }
+        tierManager.checkAccess(player, spawnName, result -> {
+            if (!result.isAllowed()) {
+                sendTierDenial(player, result);
+                return;
+            }
+            // The lookup may have taken a moment — they could be gone.
+            if (!player.isOnline()) {
+                return;
+            }
+            enterSpawn(player, ffaPlayer, kit, spawn);
+        });
+        return true;
     }
 
     /** Applies the kit and drops the player into the spawn. */
