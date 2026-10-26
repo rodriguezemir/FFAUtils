@@ -22,29 +22,37 @@ dependencies {
     testCompileOnly("org.projectlombok:lombok:1.18.32")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.32")
 
-    compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
-    compileOnly("me.clip:placeholderapi:2.12.2")
-    compileOnly("com.github.retrooper:packetevents-spigot:2.13.0")
+    compileOnly("io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT")
+    compileOnly("me.clip:placeholderapi:2.11.6")
 
-    implementation("com.github.putindeer:mcdev-utils:1.0.28")
-    implementation("com.google.code.gson:gson:2.14.0")
-    implementation("com.zaxxer:HikariCP:7.0.2")
+    implementation("com.google.code.gson:gson:2.11.0")
+    implementation("com.zaxxer:HikariCP:5.1.0")
     implementation("fr.mrmicky:fastinv:3.1.2")
 
-    testImplementation("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    testImplementation("io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     // Paper supplies SQLite at runtime; integration tests need their own driver.
     testRuntimeOnly("org.xerial:sqlite-jdbc:3.49.1.0")
     testImplementation("org.mockito:mockito-core:5.12.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.12.0")
-    testImplementation("me.clip:placeholderapi:2.12.2")
+    testImplementation("me.clip:placeholderapi:2.11.6")
 
-    testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.110.0")
+    testImplementation("com.github.seeseemelk:MockBukkit-v1.18:2.85.2")
 }
 
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(21)
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    // A 1.18.x server runs on Java 17 or newer, so the plugin bytecode must stay 17.
+    options.release.set(17)
+    options.encoding = "UTF-8"
+}
+
+val runServerJava = javaToolchains.launcherFor {
+    languageVersion.set(JavaLanguageVersion.of(21))
 }
 
 tasks {
@@ -58,20 +66,20 @@ tasks {
 
     shadowJar {
         archiveClassifier.set("")
-        relocate("com.github.putindeer", "site.zvolcan.fFAUtils.libs.utils")
         relocate("com.google.gson", "site.zvolcan.fFAUtils.libs.gson")
         relocate("com.zaxxer.hikari", "site.zvolcan.fFAUtils.libs.hikari")
         relocate("fr.mrmicky.fastinv", "site.zvolcan.fFAUtils.fastinv")
     }
 
     runServer {
-        minecraftVersion("1.21.4")
+        minecraftVersion("1.18.2")
         jvmArgs("-Xms2G", "-Xmx2G", "-Dcom.mojang.eula.agree=true")
+        javaLauncher.set(runServerJava)
     }
 
     processResources {
         val props = mapOf("version" to version)
-        filesMatching("paper-plugin.yml") {
+        filesMatching("plugin.yml") {
             expand(props)
         }
     }

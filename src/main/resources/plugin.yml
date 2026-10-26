@@ -1,0 +1,56 @@
+name: FFAUtils
+version: "${version}"
+main: site.zvolcan.fFAUtils.FFAUtils
+api-version: "1.18"
+description: FFA spawns, kits, regions, stats and tiers.
+softdepend:
+  - PlaceholderAPI
+  - packetevents
+commands:
+  dead:
+    description: Kills the executing player.
+    usage: "/dead"
+  fto10:
+    description: Fto10 invitations and match abandonment.
+    usage: "/fto10 <invite|accept|deny|leave> <player>"
+  kit:
+    description: Applies, creates, edits, deletes and lists kits.
+    usage: "/kit <name|create|edit|delete|list>"
+    permission: ffautils.commands.kit
+  ffakiteditor:
+    description: Opens the kit editor menu.
+    usage: "/ffakiteditor"
+    permission: ffautils.commands.ffakiteditor
+  loadme:
+    description: Loads a kit and a spawn into the FFA.
+    usage: "/loadme <kit> <spawn>"
+  ffautils:
+    description: FFAUtils administration.
+    usage: "/ffautils reload"
+    permission: ffautils.commands.ffautils
+  kitregion:
+    description: Manages kit regions.
+    usage: "/kitregion <kit> <pos1|pos2|delete|info>"
+    permission: ffautils.commands.kitregion
+  setspawn:
+    description: Creates spawns and manages their allowed kits.
+    usage: "/setspawn <create|allowkit|removekit|delete> ..."
+    permission: ffautils.commands.setspawn
+  spawn:
+    description: Teleports the player back to the lobby spawn.
+    usage: "/spawn"
+    permission: ffautils.commands.spawn
+  tiers:
+    description: Manages the tier spawn gate.
+    usage: "/tiers [status|on|off|toggle|reload|cache clear|check <player> [provider]]"
+    permission: ffautils.commands.tiers
+permissions:
+  ffautils.bypass-combat-block:
+    description: Allows executing blocked commands while in combat
+    default: op
+  ffautils.commands.tiers:
+    description: Allows managing the MCTiers spawn gate with /tiers
+    default: op
+  ffautils.tiers.bypass:
+    description: Allows entering tier-restricted spawns regardless of MCTiers rank
+    default: op

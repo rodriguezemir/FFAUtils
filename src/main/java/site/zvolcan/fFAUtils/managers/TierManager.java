@@ -7,6 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import site.zvolcan.fFAUtils.objects.TierProfile;
+import site.zvolcan.fFAUtils.util.NonBlockingHttpClient;
 import site.zvolcan.fFAUtils.objects.TierRanking;
 import site.zvolcan.fFAUtils.providers.EliteStormProvider;
 import site.zvolcan.fFAUtils.providers.McTiersProvider;
@@ -569,16 +570,16 @@ public final class TierManager {
      * Deliberately not {@code HttpClient.close()}: that waits for every
      * in-flight request to finish, which would freeze the caller for up to the
      * request timeout. This runs on the main thread — from {@code /tiers
-     * reload} and from {@code onDisable} — so it uses the non-blocking
-     * {@code shutdown()} instead and lets pending requests drain on their own.
+     * reload} and from {@code onDisable} — so only the non-blocking release is
+     * used and pending requests drain on their own.
+     *
+     * <p>
+     * The non-blocking release itself lives in {@link NonBlockingHttpClient},
+     * because {@code HttpClient.shutdown()} only exists from Java 21 on.
      */
     private void closeClient() {
         if (httpClient != null) {
-            try {
-                httpClient.shutdown();
-            } catch (Exception ignored) {
-                // Nothing useful to do if the client refuses to shut down.
-            }
+            NonBlockingHttpClient.releaseQuietly(httpClient);
             httpClient = null;
         }
         if (executor != null) {
