@@ -73,6 +73,7 @@ Every permission defaults to operators.
 |---|---|
 | `ffautils.bypass-combat-block` | Run blocked commands while tagged in combat. |
 | `ffautils.tiers.bypass` | Enter tier-restricted spawns regardless of rank. |
+| `ffautils.update-notify` | Receive the "newer release available" notice on join. |
 
 > The spawn named `lobby` is special: it is where players are sent on join and by `/spawn`. If it does not exist, the first world's spawn point is used.
 
@@ -100,6 +101,22 @@ combatlog.timeout-ticks: 300    # how long a combat tag lasts, in ticks
 ```
 
 Combat log duration may also be given in seconds as `duration-combat-log`, which is multiplied by 20. If neither key is present the default is 15 seconds.
+
+### Update checker
+
+On startup the plugin asks the GitHub API for [the latest release](https://api.github.com/repos/rodriguezemir/ffautils/releases/latest) and compares it with its own version. A newer release is logged as a warning naming the tag and the page URL; players holding `ffautils.update-notify` also get a clickable line on join. Nothing is downloaded and nothing is written.
+
+```yml
+update-check:
+  enabled: true                # turn the whole check off
+  api-url: "https://api.github.com/repos/rodriguezemir/ffautils/releases/latest"
+  timeout-seconds: 5           # connect and request timeout
+  notify-players: true         # tell players with ffautils.update-notify on join
+```
+
+The request runs on its own daemon thread and never blocks a tick, so a slow or unreachable endpoint costs nothing. Every failure — offline, rate limit, repository without releases, payload without a version — resolves to "no update" instead of an exception in the log. `api-url` can point at a mirror or a fork as long as the JSON carries `tag_name` and `html_url`.
+
+Tags are compared numerically, not as text: `v1.10.0` is newer than `v1.9.9`, a missing component counts as zero (`1.3` equals `1.3.0`), build metadata is ignored, and a finished release (`v1.3.0`) is newer than its pre-release (`v1.3.0-SNAPSHOT`). Two different pre-release labels of the same number are treated as equal, which keeps the notice quiet instead of guessing.
 
 ## Tier-gated spawns
 
