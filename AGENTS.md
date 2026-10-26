@@ -1,4 +1,4 @@
-# FFAUtils — Paper 1.21.4 plugin
+# FFAUtils — Paper 1.18.2 plugin
 
 ## Build & test
 
@@ -8,15 +8,17 @@
 ./gradlew shadowJar        # fat JAR to build/libs/
 ```
 
+The build targets `io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT` and compiles with a JDK 21 toolchain plus `options.release = 17`, so the plugin is Java 17 bytecode and also loads on a Java 17 server JVM.
+
 Gradle configuration cache is on. If you change `build.gradle.kts`, run with `--no-configuration-cache` or clear `.gradle/configuration-cache/`.
 
 ## Run a local server
 
 ```sh
-./gradlew runServer        # Paper 1.21.4, 2GB RAM, auto-agrees to EULA
+./gradlew runServer        # Paper 1.18.2, 2GB RAM, auto-agrees to EULA
 ```
 
-Server runs in `build/runServer/`. Plugin JAR is deployed automatically.
+Server runs in `build/runServer/` on a Java 21 launcher. Plugin JAR is deployed automatically.
 
 ## Project layout
 
@@ -27,30 +29,32 @@ src/
       FFAUtils.java              # main class (static singleton via @Getter)
       FFAPlaceholders.java       # PlaceholderAPI expansion
       managers/                  # business logic — stateful singletons
-      commands/                  # Brigadier command implementations
-      commands/abs/              # CommandExecutor functional interface
+      commands/                  # Bukkit command implementations
+      commands/abs/              # FFACommand interface (CommandExecutor + TabCompleter)
       listeners/                 # Bukkit event handlers
       objects/                   # value objects (DeathEvent, Kit, FFAPlayer, etc.)
       providers/                 # external tier APIs behind the abstract TierProvider
+      util/                      # PluginUtils, ItemBuilder, NonBlockingHttpClient
     resources/
-      paper-plugin.yml           # plugin descriptor (NOT plugin.yml!)
+      plugin.yml                 # plugin descriptor (commands, permissions, api-version 1.18)
       config.yml                 # main config
       messages.yml               # message strings
       death-messages.yml         # death event message pool
       spawn-lobby-items.yml      # lobby hotbar items
   test/
-    java/site/zvolcan/fFAUtils/managers/   # test classes
+    java/site/zvolcan/fFAUtils/            # test classes, mirroring the main packages
 ```
 
 ## Architecture
 
-- **Plugin descriptor**: `paper-plugin.yml` (Paper's new format). Version expanded from Gradle via `processResources`.
-- **Commands**: Paper Brigadier API via `LifecycleEvents.COMMANDS`. All commands implement `CommandExecutor` functional interface returning `LiteralCommandNode<CommandSourceStack>`.
+- **Plugin descriptor**: `plugin.yml` with `api-version: "1.18"`. Version expanded from Gradle via `processResources`. Paper 1.18.2 has no `paper-plugin.yml` and no `LifecycleEvents` or Brigadier command API, so neither exists here any more.
+- **Commands**: classic Bukkit commands. Every `commands/*Command` implements `commands/abs/FFACommand` (Bukkit `CommandExecutor` + `TabCompleter`) and must be declared under `commands:` in `plugin.yml`; `managers/CommandManager` binds each one with `Plugin#getCommand(name).setExecutor(...)` / `setTabCompleter(...)` and throws if a command is not declared. Tab completion is therefore manual — `FFACommand#matching` reproduces the prefix matching the Brigadier tree used to do for free.
 - **Managers**: instantiated in `onEnable()`, stored as `@Getter` fields on the main class. Accessed via `FFAUtils.getInstance().getXxxManager()`.
 - **Persistence**:
   - SpawnManager, KitManager: **per-file JSON** via Gson (`spawns/<name>.json`, `kits/<name>.json`)
   - DeathEventManager: **YAML list** via `YamlConfiguration` (`death-messages.yml`)
   - StatsManager: **HikariCP** connection pool to SQL database
+- **Utilities**: `site.zvolcan.fFAUtils.util.PluginUtils`, reached via `FFAUtils#getUtils()`, replaces the removed `mcdev-utils` library — same `message`, `broadcast`, `chat` and `ib` helpers. `util/ItemBuilder` and `util/NonBlockingHttpClient` live beside it.
 - **PlaceholderAPI**: optional dependency (`required: false`), expansion registered in `onEnable()`.
 - **Tier providers**: `TierProvider` is an abstract class holding everything common to an external tier API — the async `java.net.http.HttpClient` call, Gson parsing into `TierProfile`, and a per-UUID cache with TTL and in-flight de-duplication. Subclasses only declare what differs. Every one of these differences breaks lookups **silently** if got wrong, so verify against the live API when touching them:
 
@@ -86,16 +90,17 @@ src/
 
 | Library | Relocated to |
 |---|---|
-| `com.github.putindeer:mcdev-utils` | `site.zvolcan.fFAUtils.libs.utils` |
-| `com.google.code.gson` | `site.zvolcan.fFAUtils.libs.gson` |
-| `com.zaxxer:HikariCP` | `site.zvolcan.fFAUtils.libs.hikari` |
-| `fr.mrmicky:fastinv` | `com.yourpackage.fastinv` |
+| `com.google.code.gson:gson:2.11.0` | `site.zvolcan.fFAUtils.libs.gson` |
+| `com.zaxxer:HikariCP:5.1.0` | `site.zvolcan.fFAUtils.libs.hikari` |
+| `fr.mrmicky:fastinv:3.1.2` | `site.zvolcan.fFAUtils.fastinv` |
+
+`com.github.putindeer:mcdev-utils` was removed: it is compiled against 1.20.5+ API that does not exist on 1.18.2, and the plugin now ships its own `util` package instead. `fr.mrmicky:fastinv:3.1.2` stays because it only uses pre-1.18 Bukkit API. PlaceholderAPI 2.11.6 is `compileOnly`/`testImplementation`, not relocated.
 
 ## Testing
 
-- **MockBukkit** (not plain Mockito) provides a mocked Paper server environment.
+- **MockBukkit v1.18** (`com.github.seeseemelk:MockBukkit-v1.18:2.85.2`, package `be.seeseemelk.mockbukkit`) — not plain Mockito — provides a mocked Paper 1.18.2 server environment.
 - Tests use `@TempDir` for filesystem isolation.
-- No MockBukkit extension is used in current tests — they test YAML/JSON config logic at the unit level, not server interactions.
+- No MockBukkit extension is used: server-backed tests call `MockBukkit.mock()` in setup and `MockBukkit.unmock()` in teardown themselves, while the rest test YAML/JSON config logic at the unit level.
 - Test files are in `src/test/java/` mirroring the main source tree.
 
 ## Config files
