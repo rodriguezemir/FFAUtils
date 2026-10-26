@@ -1,20 +1,20 @@
 package site.zvolcan.fFAUtils.commands;
 
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.tree.LiteralCommandNode;
-import io.papermc.paper.command.brigadier.CommandSourceStack;
-import io.papermc.paper.command.brigadier.Commands;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import site.zvolcan.fFAUtils.FFAUtils;
-import site.zvolcan.fFAUtils.commands.abs.CommandExecutor;
+import site.zvolcan.fFAUtils.commands.abs.FFACommand;
 import site.zvolcan.fFAUtils.managers.Fto10Manager;
 import site.zvolcan.fFAUtils.managers.MessagesManager;
 
-/** Brigadier command for Fto10 invitations and match abandonment. */
-public final class Fto10Command implements CommandExecutor {
+import java.util.List;
+
+/** Fto10 invitations and match abandonment. */
+public final class Fto10Command implements FFACommand {
+
+    private static final String[] SUBCOMMANDS = {"invite", "accept", "deny", "leave"};
 
     private final FFAUtils plugin;
     private final Fto10Manager fto10Manager;
@@ -25,20 +25,37 @@ public final class Fto10Command implements CommandExecutor {
     }
 
     @Override
-    public LiteralCommandNode<CommandSourceStack> execute() {
-        LiteralArgumentBuilder<CommandSourceStack> literal = Commands.literal("fto10");
-        literal.then(action("invite", this::invite));
-        literal.then(action("accept", this::accept));
-        literal.then(action("deny", this::deny));
-        literal.then(action("leave", this::leave));
-        return literal.build();
+    public String name() {
+        return "fto10";
     }
 
-    private LiteralArgumentBuilder<CommandSourceStack> action(String name, Action action) {
-        return Commands.literal(name)
-                .then(Commands.argument("player", StringArgumentType.word())
-                        .executes(ctx -> action.run(ctx.getSource().getSender(),
-                                StringArgumentType.getString(ctx, "player"))));
+    /**
+     * {@code /fto10 <invite|accept|deny|leave> <player>}. The subcommand has no
+     * default branch: an unknown action, a missing player or any extra argument
+     * left the command unparsed, so nothing ran.
+     */
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length != 2) {
+            return true;
+        }
+        String name = args[1];
+        switch (args[0]) {
+            case "invite" -> invite(sender, name);
+            case "accept" -> accept(sender, name);
+            case "deny" -> deny(sender, name);
+            case "leave" -> leave(sender, name);
+            default -> {
+                // Not a subcommand of this tree.
+            }
+        }
+        return true;
+    }
+
+    /** The action literals; the player argument had no {@code suggests}, so it suggests nothing. */
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        return FFACommand.atFirstToken(args, SUBCOMMANDS);
     }
 
     private int invite(CommandSender sender, String name) {
@@ -108,10 +125,5 @@ public final class Fto10Command implements CommandExecutor {
     private int error(Player player, String key, String placeholder, String value) {
         player.sendMessage(MessagesManager.getInstance().getMessage(key, placeholder, value));
         return 1;
-    }
-
-    @FunctionalInterface
-    private interface Action {
-        int run(CommandSender sender, String name);
     }
 }

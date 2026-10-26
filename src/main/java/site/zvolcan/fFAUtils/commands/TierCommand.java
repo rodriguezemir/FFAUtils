@@ -1,14 +1,10 @@
 package site.zvolcan.fFAUtils.commands;
 
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.tree.LiteralCommandNode;
-import io.papermc.paper.command.brigadier.CommandSourceStack;
-import io.papermc.paper.command.brigadier.Commands;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import site.zvolcan.fFAUtils.FFAUtils;
-import site.zvolcan.fFAUtils.commands.abs.CommandExecutor;
+import site.zvolcan.fFAUtils.commands.abs.FFACommand;
 import site.zvolcan.fFAUtils.managers.MessagesManager;
 import site.zvolcan.fFAUtils.managers.TierManager;
 import site.zvolcan.fFAUtils.objects.Sounds;
@@ -16,9 +12,10 @@ import site.zvolcan.fFAUtils.objects.TierProfile;
 import site.zvolcan.fFAUtils.objects.TierRanking;
 import site.zvolcan.fFAUtils.providers.TierProvider;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-
 /**
  * {@code /tiers} — turns the tier spawn gate on and off and inspects it.
  *
@@ -30,7 +27,12 @@ import java.util.Map;
  * <li>{@code /tiers check <player> [provider]} — look up a player's tier</li>
  * </ul>
  */
-public final class TierCommand implements CommandExecutor {
+public final class TierCommand implements FFACommand {
+
+    private static final String CACHE = "cache";
+    private static final String CLEAR = "clear";
+    private static final String CHECK = "check";
+    private static final String[] SUBCOMMANDS = {"status", "on", "off", "toggle", "reload", CACHE, CHECK};
 
     private final FFAUtils plugin;
     private final TierManager tierManager;
@@ -41,55 +43,103 @@ public final class TierCommand implements CommandExecutor {
     }
 
     @Override
-    public LiteralCommandNode<CommandSourceStack> execute() {
-        LiteralArgumentBuilder<CommandSourceStack> literal = Commands.literal("tiers");
+    public String name() {
+        return "tiers";
+    }
 
-        literal.requires(ctx -> ctx.getSender().hasPermission("ffautils.commands.tiers"));
-        literal.executes(ctx -> sendStatus(ctx.getSource().getSender()));
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length == 0) {
+            sendStatus(sender);
+            return true;
+        }
+        switch (args[0]) {
+            case "status" -> {
+                if (args.length == 1) {
+                    sendStatus(sender);
+                }
+            }
+            case "on" -> {
+                if (args.length == 1) {
+                    setEnabled(sender, true);
+                }
+            }
+            case "off" -> {
+                if (args.length == 1) {
+                    setEnabled(sender, false);
+                }
+            }
+            case "toggle" -> {
+                if (args.length == 1) {
+                    setEnabled(sender, !tierManager.isEnabled());
+                }
+            }
+            case "reload" -> {
+                if (args.length == 1) {
+                    reload(sender);
+                }
+            }
+            case "cache" -> {
+                if (args.length == 2 && args[1].equals("clear")) {
+                    clearCache(sender);
+                }
+            }
+            case "check" -> {
+                if (args.length == 2) {
+                    check(sender, args[1], null);
+                } else if (args.length == 3) {
+                    check(sender, args[1], args[2]);
+                }
+            }
+            default -> {
+                // Not a subcommand of this tree.
+            }
+        }
+        return true;
+    }
 
-        literal.then(Commands.literal("status")
-                .executes(ctx -> sendStatus(ctx.getSource().getSender())));
+    /**
+     * The subcommand literals this node accepts, {@code clear} below {@code cache}, and
+     * the provider argument of {@code /tiers check <player> [provider]}. The player
+     * argument keeps suggesting nothing, exactly like {@code StringArgumentType.word()}.
+     */
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (args.length == 0) {
+            return List.of();
+        }
+        if (args.length == 1) {
+            return FFACommand.matching(args[0], SUBCOMMANDS);
+        }
+        if (CACHE.equals(args[0])) {
+            return args.length == 2 ? FFACommand.matching(args[1], CLEAR) : List.of();
+        }
+        if (!CHECK.equals(args[0]) || args.length != 3) {
+            return List.of();
+        }
+        String prefix = args[2].toLowerCase(Locale.ROOT);
+        List<String> suggestions = new ArrayList<>();
+        for (String provider : tierManager.getProviders().keySet()) {
+            if (provider.toLowerCase(Locale.ROOT).startsWith(prefix)) {
+                suggestions.add(provider);
+            }
+        }
+        if (TierManager.PROVIDER_ANY.toLowerCase(Locale.ROOT).startsWith(prefix)) {
+            suggestions.add(TierManager.PROVIDER_ANY);
+        }
+        return suggestions;
+    }
 
-        literal.then(Commands.literal("on")
-                .executes(ctx -> setEnabled(ctx.getSource().getSender(), true)));
+    private void reload(CommandSender sender) {
+        tierManager.loadSettings();
+        tierManager.clearCache();
+        message(sender, Sounds.SUCCESS_SOUND, messages().getMessage("tiers-reloaded"));
+    }
 
-        literal.then(Commands.literal("off")
-                .executes(ctx -> setEnabled(ctx.getSource().getSender(), false)));
-
-        literal.then(Commands.literal("toggle")
-                .executes(ctx -> setEnabled(ctx.getSource().getSender(), !tierManager.isEnabled())));
-
-        literal.then(Commands.literal("reload").executes(ctx -> {
-            CommandSender sender = ctx.getSource().getSender();
-            tierManager.loadSettings();
-            tierManager.clearCache();
-            message(sender, Sounds.SUCCESS_SOUND, messages().getMessage("tiers-reloaded"));
-            return 1;
-        }));
-
-        literal.then(Commands.literal("cache").then(Commands.literal("clear").executes(ctx -> {
-            CommandSender sender = ctx.getSource().getSender();
-            int cleared = tierManager.clearCache();
-            message(sender, Sounds.SUCCESS_SOUND,
-                    messages().getMessage("tiers-cache-cleared", "{entries}", String.valueOf(cleared)));
-            return 1;
-        })));
-
-        literal.then(Commands.literal("check")
-                .then(Commands.argument("player", StringArgumentType.word())
-                        .executes(ctx -> check(ctx.getSource().getSender(),
-                                StringArgumentType.getString(ctx, "player"), null))
-                        .then(Commands.argument("provider", StringArgumentType.word())
-                                .suggests((ctx, builder) -> {
-                                    tierManager.getProviders().keySet().forEach(builder::suggest);
-                                    builder.suggest(TierManager.PROVIDER_ANY);
-                                    return builder.buildFuture();
-                                })
-                                .executes(ctx -> check(ctx.getSource().getSender(),
-                                        StringArgumentType.getString(ctx, "player"),
-                                        StringArgumentType.getString(ctx, "provider"))))));
-
-        return literal.build();
+    private void clearCache(CommandSender sender) {
+        int cleared = tierManager.clearCache();
+        message(sender, Sounds.SUCCESS_SOUND,
+                messages().getMessage("tiers-cache-cleared", "{entries}", String.valueOf(cleared)));
     }
 
     private int setEnabled(CommandSender sender, boolean enabled) {

@@ -1,11 +1,9 @@
 package site.zvolcan.fFAUtils.commands;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.tree.LiteralCommandNode;
-import io.papermc.paper.command.brigadier.CommandSourceStack;
-import io.papermc.paper.command.brigadier.Commands;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import site.zvolcan.fFAUtils.commands.abs.CommandExecutor;
+import site.zvolcan.fFAUtils.commands.abs.FFACommand;
 import site.zvolcan.fFAUtils.managers.LobbyManager;
 import site.zvolcan.fFAUtils.managers.PlayersManager;
 import org.bukkit.GameMode;
@@ -13,7 +11,7 @@ import site.zvolcan.fFAUtils.managers.SpawnManager;
 import site.zvolcan.fFAUtils.objects.FFAPlayer;
 import site.zvolcan.fFAUtils.objects.PlayerState;
 
-public final class SpawnCommand implements CommandExecutor {
+public final class SpawnCommand implements FFACommand {
 
     private final SpawnManager spawnManager;
     private final LobbyManager lobbyManager;
@@ -26,29 +24,31 @@ public final class SpawnCommand implements CommandExecutor {
     }
 
     @Override
-    public LiteralCommandNode<CommandSourceStack> execute() {
-        LiteralArgumentBuilder<CommandSourceStack> literal = Commands.literal("spawn")
-                .executes(ctx -> {
-                    final CommandSourceStack source = ctx.getSource();
+    public String name() {
+        return "spawn";
+    }
 
-                    if (source.getSender() instanceof Player player) {
-                        player.teleport(spawnManager.getLobbySpawn());
-                        player.setHealth(20);
-                        player.setFoodLevel(20);
-                        player.setSaturation(0);
-                        player.setGameMode(GameMode.SURVIVAL);
-                        player.getActivePotionEffects().forEach(e -> {
-                            player.removePotionEffect(e.getType());
-                        });
-                        FFAPlayer ffaPlayer = playersManager.getFFAPlayer(player);
-                        ffaPlayer.setState(PlayerState.LOBBY);
-                        lobbyManager.addLobbyItems(player);
-                    }
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        // /spawn took no arguments: anything longer was an unparsed command, so nothing ran.
+        if (args.length != 0) {
+            return true;
+        }
 
-                    return 1;
-                });
+        if (sender instanceof Player player) {
+            player.teleport(spawnManager.getLobbySpawn());
+            player.setHealth(20);
+            player.setFoodLevel(20);
+            player.setSaturation(0);
+            player.setGameMode(GameMode.SURVIVAL);
+            player.getActivePotionEffects().forEach(e -> {
+                player.removePotionEffect(e.getType());
+            });
+            FFAPlayer ffaPlayer = playersManager.getFFAPlayer(player);
+            ffaPlayer.setState(PlayerState.LOBBY);
+            lobbyManager.addLobbyItems(player);
+        }
 
-        literal.requires(ctx -> ctx.getSender().hasPermission("ffautils.commands.spawn"));
-        return literal.build();
+        return true;
     }
 }

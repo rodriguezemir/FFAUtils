@@ -1,12 +1,9 @@
 package site.zvolcan.fFAUtils.commands;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.tree.LiteralCommandNode;
-import io.papermc.paper.command.brigadier.CommandSourceStack;
-import io.papermc.paper.command.brigadier.Commands;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import site.zvolcan.fFAUtils.commands.abs.CommandExecutor;
+import site.zvolcan.fFAUtils.commands.abs.FFACommand;
 import site.zvolcan.fFAUtils.inventory.KitEditorInventory;
 import site.zvolcan.fFAUtils.managers.KitManager;
 import site.zvolcan.fFAUtils.managers.MessagesManager;
@@ -16,7 +13,7 @@ import site.zvolcan.fFAUtils.objects.PlayerState;
 import site.zvolcan.fFAUtils.objects.Sounds;
 import site.zvolcan.fFAUtils.FFAUtils;
 
-public final class KitEditorCommand implements CommandExecutor {
+public final class KitEditorCommand implements FFACommand {
 
     private final FFAUtils plugin;
     private final KitManager kitManager;
@@ -29,32 +26,30 @@ public final class KitEditorCommand implements CommandExecutor {
     }
 
     @Override
-    public LiteralCommandNode<CommandSourceStack> execute() {
-        LiteralArgumentBuilder<CommandSourceStack> literal = Commands.literal("ffakiteditor");
+    public String name() {
+        return "ffakiteditor";
+    }
 
-        literal.requires(ctx -> ctx.getSender() instanceof Player
-                && ctx.getSender().hasPermission("ffautils.commands.ffakiteditor"));
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        // /ffakiteditor took no arguments: anything longer was an unparsed command.
+        if (args.length != 0) {
+            return true;
+        }
 
-        literal.executes(ctx -> {
-            CommandSourceStack source = ctx.getSource();
-            CommandSender sender = source.getSender();
-            if (!(sender instanceof Player player)) {
-                sender.sendMessage(MessagesManager.getInstance()
-                        .getMessage("only-players-execute"));
-                return 1;
-            }
+        // The command tree required a Player sender, so console saw no command at all.
+        if (!(sender instanceof Player player)) {
+            return true;
+        }
 
-            FFAPlayer ffaPlayer = playersManager.getFFAPlayer(player);
-            if (ffaPlayer.getState() == PlayerState.IN_FFA) {
-                plugin.getUtils().message(player, Sounds.ERROR_SOUND,
-                        MessagesManager.getInstance().getMessage("player-already-in-ffa"));
-                return 1;
-            }
+        FFAPlayer ffaPlayer = playersManager.getFFAPlayer(player);
+        if (ffaPlayer.getState() == PlayerState.IN_FFA) {
+            plugin.getUtils().message(player, Sounds.ERROR_SOUND,
+                    MessagesManager.getInstance().getMessage("player-already-in-ffa"));
+            return true;
+        }
 
-            new KitEditorInventory(kitManager, 0).open(player);
-            return 1;
-        });
-
-        return literal.build();
+        new KitEditorInventory(kitManager, 0).open(player);
+        return true;
     }
 }

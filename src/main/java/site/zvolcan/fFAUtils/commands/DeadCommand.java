@@ -1,24 +1,27 @@
 package site.zvolcan.fFAUtils.commands;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.tree.LiteralCommandNode;
-import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import site.zvolcan.fFAUtils.commands.abs.CommandExecutor;
+import site.zvolcan.fFAUtils.commands.abs.FFACommand;
 
-public final class DeadCommand implements CommandExecutor {
+public final class DeadCommand implements FFACommand {
+
     @Override
-    public LiteralCommandNode<CommandSourceStack> execute() {
-        LiteralArgumentBuilder<CommandSourceStack> literal = LiteralArgumentBuilder.<CommandSourceStack>literal("dead")
-                .executes(ctx -> {
-                    CommandSourceStack source = ctx.getSource();
+    public String name() {
+        return "dead";
+    }
 
-                    if (source.getSender() instanceof Player player) {
-                        player.setHealth(0);
-                    }
-                    return 1;
-                });
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        // /dead took no arguments: anything longer was an unparsed command, so nothing ran.
+        if (args.length != 0) {
+            return true;
+        }
 
-        return literal.build();
+        if (sender instanceof Player player) {
+            player.setHealth(0);
+        }
+        return true;
     }
 }
