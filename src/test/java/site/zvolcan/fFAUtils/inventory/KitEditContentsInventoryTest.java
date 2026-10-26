@@ -1,6 +1,6 @@
 package site.zvolcan.fFAUtils.inventory;
 
-import me.putindeer.api.util.PluginUtils;
+import site.zvolcan.fFAUtils.util.PluginUtils;
 import org.bukkit.Material;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.*;
@@ -8,13 +8,14 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockbukkit.mockbukkit.MockBukkit;
-import org.mockbukkit.mockbukkit.ServerMock;
-import org.mockbukkit.mockbukkit.entity.PlayerMock;
+import be.seeseemelk.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.ServerMock;
+import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import site.zvolcan.fFAUtils.FFAUtils;
 import site.zvolcan.fFAUtils.managers.KitManager;
 import site.zvolcan.fFAUtils.managers.PlayersManager;
 import site.zvolcan.fFAUtils.objects.Kit;
+import site.zvolcan.fFAUtils.support.MockBukkit18ServerMock;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,7 +37,7 @@ class KitEditContentsInventoryTest {
     byte[] globalFile;
 
     @BeforeEach void setUp() throws Exception {
-        server = MockBukkit.mock();
+        server = MockBukkit.mock(new MockBukkit18ServerMock());
         player = server.addPlayer();
         plugin = mock(FFAUtils.class);
         when(plugin.isEnabled()).thenReturn(true);

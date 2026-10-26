@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import site.zvolcan.fFAUtils.managers.TierManager;
 import site.zvolcan.fFAUtils.objects.TierProfile;
+import site.zvolcan.fFAUtils.util.NonBlockingHttpClient;
 
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -93,7 +94,7 @@ class TierProviderAsyncTest {
 
     @AfterEach
     void tearDown() throws Exception {
-        httpClient.shutdownNow();
+        NonBlockingHttpClient.releaseQuietly(httpClient);
         executor.shutdownNow();
         stallingServer.close();
     }

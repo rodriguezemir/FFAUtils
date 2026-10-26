@@ -4,11 +4,12 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockbukkit.mockbukkit.MockBukkit;
-import org.mockbukkit.mockbukkit.entity.PlayerMock;
+import be.seeseemelk.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import site.zvolcan.fFAUtils.FFAUtils;
 import site.zvolcan.fFAUtils.objects.Kit;
 import site.zvolcan.fFAUtils.objects.KitLayout;
+import site.zvolcan.fFAUtils.support.MockBukkit18ServerMock;
 import java.nio.file.Files;
 
 import java.nio.file.Path;
@@ -24,7 +25,7 @@ class KitManagerTest {
     PlayerMock player;
 
     @BeforeEach void setUp() {
-        var server = MockBukkit.mock();
+        var server = MockBukkit.mock(new MockBukkit18ServerMock());
         player = server.addPlayer();
         FFAUtils plugin = mock(FFAUtils.class);
         when(plugin.getDataFolder()).thenReturn(directory.toFile());
@@ -63,9 +64,8 @@ class KitManagerTest {
         assertArrayEquals(personal, exact.getValue(), "The API receives all 41 slots including AIR");
         verify(targetInventory, never()).setHelmet(any());
         manager.applyKit(player, kit);
-        ItemStack[] normalized = KitLayout.copy(personal);
-        normalized[3] = null; // MockBukkit normalizes AIR in actual player inventory.
-        assertArrayEquals(normalized, java.util.Arrays.copyOf(player.getInventory().getContents(), 41));
+        // MockBukkit v1.18 stores the explicit AIR stack it is handed, where a real server reports that slot as empty.
+        assertArrayEquals(personal, java.util.Arrays.copyOf(player.getInventory().getContents(), 41));
         assertNull(player.getInventory().getHelmet(), "Personal helmet must remain in storage");
         player.getInventory().getItem(2).setAmount(1);
         assertEquals(8, manager.getEffectiveContents(player, "test")[2].getAmount());

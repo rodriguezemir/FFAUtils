@@ -60,7 +60,7 @@ class PlayerDeathListenerTest {
     @Mock
     private PlayerDeathEvent event;
 
-    private me.putindeer.api.util.PluginUtils utils;
+    private site.zvolcan.fFAUtils.util.PluginUtils utils;
     private PlayerDeathListener listener;
     private UUID victimUuid;
     private UUID killerUuid;
@@ -118,15 +118,7 @@ class PlayerDeathListenerTest {
         when(victim.getUniqueId()).thenReturn(victimUuid);
         when(killer.getUniqueId()).thenReturn(killerUuid);
 
-        // PluginUtils is not mockable via @Mock in this environment,
-        // so we create a mock manually with lenient settings
-        try {
-            Class<me.putindeer.api.util.PluginUtils> puClass = (Class<me.putindeer.api.util.PluginUtils>) Class
-                    .forName("me.putindeer.api.util.PluginUtils");
-            utils = mock(puClass, withSettings().lenient().withoutAnnotations());
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Cannot load PluginUtils", e);
-        }
+        utils = mock(site.zvolcan.fFAUtils.util.PluginUtils.class, withSettings().lenient());
 
         listener = new PlayerDeathListener(null, deathEventManager, spawnManager, combatLogManager, statsManager,
                 playersManager, lobbyManager, kitManager);
@@ -376,7 +368,7 @@ class PlayerDeathListenerTest {
         when(playersManager.getFFAPlayer(killer)).thenReturn(killerFfa);
         when(killer.getHealth()).thenReturn(20.0);
         AttributeInstance maxHealth = mock(AttributeInstance.class);
-        when(killer.getAttribute(Attribute.MAX_HEALTH)).thenReturn(maxHealth);
+        when(killer.getAttribute(Attribute.GENERIC_MAX_HEALTH)).thenReturn(maxHealth);
         when(maxHealth.getValue()).thenReturn(20.0);
         return killerFfa;
     }

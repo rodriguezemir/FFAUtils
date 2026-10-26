@@ -38,7 +38,7 @@ class PlayerCommandBlockerListenerTest {
     @Mock
     private PlayerCommandPreprocessEvent event;
 
-    private me.putindeer.api.util.PluginUtils utils;
+    private site.zvolcan.fFAUtils.util.PluginUtils utils;
     private PlayerCommandBlockerListener listener;
     private FFAUtils mockPlugin;
     private UUID playerUuid;
@@ -54,15 +54,7 @@ class PlayerCommandBlockerListenerTest {
 
         when(player.getUniqueId()).thenReturn(playerUuid);
 
-        // PluginUtils — not @Mock mockable in this environment
-        try {
-            Class<me.putindeer.api.util.PluginUtils> puClass =
-                    (Class<me.putindeer.api.util.PluginUtils>)
-                            Class.forName("me.putindeer.api.util.PluginUtils");
-            utils = mock(puClass, withSettings().lenient().withoutAnnotations());
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Cannot load PluginUtils", e);
-        }
+        utils = mock(site.zvolcan.fFAUtils.util.PluginUtils.class, withSettings().lenient());
 
         // Static mocks
         ffaStatic = mockStatic(FFAUtils.class, withSettings().lenient());
